@@ -18,3 +18,18 @@ export interface ActionButton {
   href?: string;
   onClick?: () => void;
 }
+
+// Add these to your existing types
+export interface LocationCard {
+  id: number;
+  title: string;
+  image: string;
+  gradient: string;
+}
+
+export interface StatCard {
+  id: number;
+  number: string;
+  label: string;
+  bgColor: string;
+}

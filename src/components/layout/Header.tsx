@@ -75,7 +75,7 @@ const ActionButton = ({
 }: ActionButtonType & { isMobile?: boolean }) => {
   return (
     <button
-      className={`flex ${
+      className={`flex cursor-pointer ${
         isMobile
           ? "items-center justify-start space-x-3 w-full py-3 px-4"
           : "flex-col items-center"
@@ -89,14 +89,14 @@ const ActionButton = ({
 
 const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
   const actions: ActionButtonType[] = [
-    { icon: <MessageCircle className="h-5 w-5" />, label: "Contact Us" },
-    { icon: <User className="h-5 w-5" />, label: "Log In/Sign In" },
-    { icon: <Bookmark className="h-5 w-5" />, label: "Saved" },
+    { icon: <MessageCircle className="h-5 w-5 cursor-pointer" />, label: "Contact Us" },
+    { icon: <User className="h-5 w-5 cursor-pointer" />, label: "Log In/Sign In" },
+    { icon: <Bookmark className="h-5 w-5 cursor-pointer" />, label: "Saved" },
   ];
 
   return (
     <div
-      className={`flex ${
+      className={`flex cursor-pointer ${
         isMobile
           ? "flex-col space-y-2 w-full border-t border-gray-200 pt-4"
           : "items-center space-x-4 xl:space-x-6"

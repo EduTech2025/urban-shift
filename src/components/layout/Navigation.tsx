@@ -10,7 +10,7 @@ const navigationItems: NavigationItem[] = [
 const NavigationItem = ({ item }: { item: NavigationItem }) => {
   return (
     <div className="relative group">
-      <button className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center transition-colors">
+      <button className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center transition-colors cursor-pointer">
         {item.label}
         {item.hasDropdown && <ChevronDown className="ml-1 h-4 w-4" />}
       </button>

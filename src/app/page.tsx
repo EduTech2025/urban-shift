@@ -1,5 +1,8 @@
+import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
+import Advisory from '@/components/sections/Advisory';
 import Hero from '@/components/sections/Hero';
+import PropertyFilterSection from '@/components/sections/PropertyFilterSection';
 import PropertyGrid from '@/components/sections/PropertyGrid';
 
 export default function HomePage() {
@@ -8,6 +11,9 @@ export default function HomePage() {
       <Header />
       <Hero />
       <PropertyGrid />
+      <Advisory />
+      <PropertyFilterSection />
+      <Footer />
     </div>
   );
 }
