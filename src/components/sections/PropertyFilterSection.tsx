@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, Filter, X, Search, Menu } from "lucide-react";
+import { ChevronDown, Filter, X, Search } from "lucide-react";
+
+import Image from "next/image";
 
 const PropertyFilterSection = () => {
   const [selectedFilters, setSelectedFilters] = useState({
@@ -12,18 +14,12 @@ const PropertyFilterSection = () => {
     bhk: [],
   });
 
-  const [showFilters, setShowFilters] = useState({
-    location: false,
-    propertyType: false,
-    bhk: false,
-  });
-
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const properties = [
     {
       id: 1,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property1.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -33,7 +29,7 @@ const PropertyFilterSection = () => {
     },
     {
       id: 2,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property2.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -43,7 +39,7 @@ const PropertyFilterSection = () => {
     },
     {
       id: 3,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property3.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -53,7 +49,7 @@ const PropertyFilterSection = () => {
     },
     {
       id: 4,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property4.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -63,7 +59,7 @@ const PropertyFilterSection = () => {
     },
     {
       id: 5,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property5.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -73,7 +69,7 @@ const PropertyFilterSection = () => {
     },
     {
       id: 6,
-      image: "/api/placeholder/400/200",
+      image: "/assets/property6.jpg",
       title: "Property name",
       subtitle: "Property name",
       location: "Location:",
@@ -81,15 +77,6 @@ const PropertyFilterSection = () => {
       propertyType: "Property type:",
       size: "Size:",
     },
-  ];
-
-  const propertyImages = [
-    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1605146769289-440113cc3d00?w=400&h=200&fit=crop",
   ];
 
   const locations = [
@@ -103,14 +90,14 @@ const PropertyFilterSection = () => {
   const propertyTypes = ["Residential", "Commercial"];
   const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK"];
 
-  const handlePriceChange = (e: any) => {
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFilters((prev) => ({
       ...prev,
       price: parseInt(e.target.value),
     }));
   };
 
-  const handleAreaSizeChange = (e: any) => {
+  const handleAreaSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedFilters((prev) => ({
       ...prev,
       areaSize: parseInt(e.target.value),
@@ -366,10 +353,13 @@ const PropertyFilterSection = () => {
                   className="bg-white rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
                 >
                   <div className="relative h-36 sm:h-40 lg:h-48 overflow-hidden">
-                    <img
-                      src={propertyImages[index]}
+                    <Image
+                      src={property.image}
                       alt={property.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority={index === 0}
                     />
                   </div>
                   <div className="p-4 sm:p-5 lg:p-6">

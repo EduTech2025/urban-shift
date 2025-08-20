@@ -96,7 +96,7 @@ const Advisory = () => {
                 expertise and integrity. From prime locations to the best
                 investment opportunities, we ensure you make confident,
                 well-informed decisions. Your dream property is our mission, and
-                we're here to make it a reality.
+                we`&apos;`re here to make it a reality.
               </p>
             </div>
 

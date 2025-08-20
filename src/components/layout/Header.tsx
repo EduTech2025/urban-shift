@@ -24,7 +24,6 @@ const Logo = () => {
 
 const NavigationWithSearch = ({
   isMobile = false,
-  onClose,
 }: {
   isMobile?: boolean;
   onClose?: () => void;
