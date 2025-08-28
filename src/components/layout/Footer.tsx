@@ -10,23 +10,21 @@ import Image from "next/image";
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-800 text-white">
+    <footer className="bg-blue-950 text-white mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12 items-start">
           {/* Logo and Contact */}
           <div className="space-y-4 sm:space-y-6 text-center md:text-left">
-            <div className="bg-[#faf3ee] rounded-lg sm:rounded-xl lg:rounded-2xl w-fit px-4 sm:px-6 lg:px-10 py-2 sm:py-3 lg:py-4 mx-auto md:mx-0">
               <div className="flex items-center justify-center md:justify-start">
-                <div className="relative w-40 h-22 sm:w-40 sm:h-22 lg:w-48 lg:h-22">
+                <div className="relative w-52 h-24 sm:w-56 sm:h-28 lg:w-60 lg:h-32">
                   <Image
-                    src="/assets/logo.png"
+                    src="/assets/logo_footer.jpg"
                     alt="UrbanShift Capital"
                     fill
                     className="object-contain"
                     priority
                   />
                 </div>
-              </div>
             </div>
 
             <div className="space-y-2 text-gray-300 text-sm sm:text-base">

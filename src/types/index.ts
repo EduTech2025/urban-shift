@@ -6,6 +6,17 @@ export interface Property {
   gradient: string;
 }
 
+export interface PropertyFilters {
+  id: number;
+  image: string;
+  title: string;
+  subtitle: string;
+  location: string;
+  price: string;
+  propertyType: string;
+  size: string;
+}
+
 export interface NavigationItem {
   label: string;
   href?: string;
@@ -32,4 +43,12 @@ export interface StatCard {
   number: string;
   label: string;
   bgColor: string;
+}
+
+export interface Filters {
+  price: number;
+  location: string[]; // This explicitly types location as string[]
+  propertyType: string[];
+  areaSize: number;
+  bhk: string[];
 }

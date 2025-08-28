@@ -1,12 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronDown, Filter, X, Search } from "lucide-react";
-
+import React, { useState, useEffect } from "react";
+import { ChevronDown, Filter, X, Search, Plus, MapPin } from "lucide-react";
 import Image from "next/image";
+import type { PropertyFilters } from "@/types";
+
+import { propertyFiltersService } from "@/lib/services/propertyFiltersService";
+import { locationService } from "@/lib/services/locationService";
+
+// Define the type for your filters
+interface Filters {
+  price: number;
+  location: string[];
+  propertyType: string[];
+  areaSize: number;
+  bhk: string[];
+}
 
 const PropertyFilterSection = () => {
-  const [selectedFilters, setSelectedFilters] = useState({
+  const [selectedFilters, setSelectedFilters] = useState<Filters>({
     price: 100,
     location: [],
     propertyType: [],
@@ -15,79 +27,22 @@ const PropertyFilterSection = () => {
   });
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [properties, setProperties] = useState<PropertyFilters[]>([]);
+  const [allLocations, setAllLocations] = useState<string[]>([]);
 
-  const properties = [
-    {
-      id: 1,
-      image: "/assets/property1.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-    {
-      id: 2,
-      image: "/assets/property2.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-    {
-      id: 3,
-      image: "/assets/property3.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-    {
-      id: 4,
-      image: "/assets/property4.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-    {
-      id: 5,
-      image: "/assets/property5.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-    {
-      id: 6,
-      image: "/assets/property6.jpg",
-      title: "Property name",
-      subtitle: "Property name",
-      location: "Location:",
-      price: "Price:",
-      propertyType: "Property type:",
-      size: "Size:",
-    },
-  ];
 
-  const locations = [
-    "Gurugram",
-    "Gurugram",
-    "Gurugram",
-    "Gurugram",
-    "Gurugram",
-    "Gurugram",
+  const filteredLocations = allLocations.filter((location) =>
+    location.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
+  const propertyTypes = [
+    "Residential",
+    "Commercial",
+    "Working Space",
+    "Rental",
   ];
-  const propertyTypes = ["Residential", "Commercial"];
   const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK"];
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +59,47 @@ const PropertyFilterSection = () => {
     }));
   };
 
+  const handleLocationSelect = (location: string) => {
+    if (!selectedFilters.location.includes(location)) {
+      setSelectedFilters((prev) => ({
+        ...prev,
+        location: [...prev.location, location],
+      }));
+    }
+    setLocationSearch("");
+    setShowLocationDropdown(false);
+  };
+
+  const removeLocation = (locationToRemove: string) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      location: prev.location.filter((loc) => loc !== locationToRemove),
+    }));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showLocationDropdown) {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".location-filter-container")) {
+          setShowLocationDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showLocationDropdown]);
+
+  // Fetch properties
+  useEffect(() => {
+    propertyFiltersService.getAll().then(setProperties);
+    locationService.getAll().then(setAllLocations);
+  }, []);
+
   const FiltersContent = ({ isMobile = false }) => (
     <div
       className={`
@@ -117,7 +113,18 @@ const PropertyFilterSection = () => {
           Apply Filter
         </button>
 
-        <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors">
+        <button
+          onClick={() =>
+            setSelectedFilters({
+              price: 100,
+              location: [],
+              propertyType: [],
+              areaSize: 100,
+              bhk: [],
+            })
+          }
+          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
+        >
           Clear All
           <X className="w-4 h-4" />
         </button>
@@ -128,7 +135,8 @@ const PropertyFilterSection = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">Price</h3>
           <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">
-            {selectedFilters.price}
+            ₹{selectedFilters.price}{" "}
+            {selectedFilters.price >= 100 ? "Lakhs+" : "Lakhs"}
           </span>
         </div>
         <div className="mb-2">
@@ -141,8 +149,8 @@ const PropertyFilterSection = () => {
         <div className="relative">
           <input
             type="range"
-            min="0"
-            max="200"
+            min="20"
+            max="500"
             value={selectedFilters.price}
             onChange={handlePriceChange}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
@@ -169,25 +177,92 @@ const PropertyFilterSection = () => {
             }
           `}</style>
         </div>
+        <div className="flex justify-between text-xs text-gray-500 mt-1">
+          <span>₹20L</span>
+          <span>₹5Cr+</span>
+        </div>
       </div>
 
       {/* Location Filter */}
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-6 sm:mb-8 location-filter-container">
         <h3 className="font-semibold text-gray-900 mb-4">Location/ Area</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-          {locations.map((location, index) => (
-            <label key={index} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="text-sm text-gray-700">{location}</span>
-            </label>
-          ))}
+
+        {/* Selected Locations */}
+        {selectedFilters.location.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {selectedFilters.location.map((location, index) => (
+              <span
+                key={index}
+                className="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full flex items-center gap-1"
+              >
+                <MapPin className="w-3 h-3" />
+                {location}
+                <button
+                  onClick={() => removeLocation(location)}
+                  className="ml-1 text-indigo-600 hover:text-indigo-800"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Location Search */}
+        <div className="relative mb-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search locations..."
+              value={locationSearch}
+              onChange={(e) => {
+                setLocationSearch(e.target.value);
+                setShowLocationDropdown(true);
+              }}
+              onFocus={() => setShowLocationDropdown(true)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+          </div>
+
+          {/* Location Dropdown */}
+          {showLocationDropdown && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {filteredLocations.length > 0 ? (
+                filteredLocations.map((location, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
+                    onClick={() => handleLocationSelect(location)}
+                  >
+                    <span>{location}</span>
+                    <Plus className="w-4 h-4 text-gray-500" />
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-gray-500 text-sm">
+                  No locations found
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        <button className="text-blue-500 text-sm hover:underline">
-          More options...
-        </button>
+
+        {/* Popular Locations Quick Select */}
+        <div className="mb-3">
+          <p className="text-xs text-gray-500 mb-2">Popular locations:</p>
+          <div className="flex flex-wrap gap-2">
+            {allLocations.slice(0, 4).map((location, index) => (
+              <button
+                key={index}
+                onClick={() => handleLocationSelect(location)}
+                className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+              >
+                {location}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Property Type Filter */}
@@ -241,6 +316,67 @@ const PropertyFilterSection = () => {
                 className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="text-sm text-gray-700">{bhk}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Parking Space */}
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
+          Parking Space
+        </h3>
+        <div className="flex space-x-4">
+          {["Yes", "No"].map((option, index) => (
+            <label
+              key={index}
+              className="flex-1 flex items-center justify-center cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 focus-within:ring-2 focus-within:ring-indigo-500 transition-colors"
+            >
+              <input
+                type="radio"
+                name="parking"
+                className="sr-only"
+                value={option}
+              />
+              <span>{option}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Furnishing */}
+      <div className="mt-6">
+        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
+          Furnishing
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          {["Furnished", "Unfurnished", "Semi-Furnished"].map(
+            (option, index) => (
+              <label key={index} className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div className="mt-6">
+        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
+          Availability
+        </h3>
+        <div className="grid grid-cols-1 gap-4">
+          {["Ready to Move", "Under Construction"].map((option, index) => (
+            <label key={index} className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span className="text-sm text-gray-700">{option}</span>
             </label>
           ))}
         </div>

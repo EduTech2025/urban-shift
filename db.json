@@ -1,0 +1,129 @@
+{
+    "properties": [
+        {
+            "id": 1,
+            "gradient": "from-blue-400 to-blue-600",
+            "image": "/assets/build1.jpg",
+            "title": "Golf Course Road and Extension",
+            "description": "Premium urban developments"
+        },
+        {
+            "id": 2,
+            "gradient": "from-amber-400 to-orange-500",
+            "image": "/assets/build2.jpg",
+            "title": "Sohna Road",
+            "description": "Family-friendly communities"
+        },
+        {
+            "id": 3,
+            "gradient": "from-purple-400 to-indigo-600",
+            "image": "/assets/build3.jpg",
+            "title": "Nirvana Country",
+            "description": "Panoramic urban views"
+        },
+        {
+            "id": 4,
+            "gradient": "from-green-400 to-teal-600",
+            "image": "/assets/build4.jpg",
+            "title": "DLF City Phase 1-5 MG Road",
+            "description": "Premium properties"
+        },
+        {
+            "id": 5,
+            "gradient": "from-green-400 to-teal-600",
+            "image": "/assets/build4.jpg",
+            "title": "DLF City Phase 1-5 MG Road",
+            "description": "Premium properties"
+        },
+        {
+            "id": 6,
+            "gradient": "from-green-400 to-teal-600",
+            "image": "/assets/build4.jpg",
+            "title": "DLF City Phase 1-5 MG Road",
+            "description": "Premium properties"
+        },
+        {
+            "id": 7,
+            "gradient": "from-green-400 to-teal-600",
+            "image": "/assets/build4.jpg",
+            "title": "DLF City Phase 1-5 MG Road",
+            "description": "Premium properties"
+        }
+    ],
+    "property-filters": [
+        {
+            "id": 1,
+            "image": "/assets/property1.jpg",
+            "title": "Luxury Apartment",
+            "subtitle": "Modern living space",
+            "location": "Gurugram, Sector 54",
+            "price": "₹85 Lakhs",
+            "propertyType": "Residential Apartment",
+            "size": "1200 sq. ft."
+        },
+        {
+            "id": 2,
+            "image": "/assets/property2.jpg",
+            "title": "Villa",
+            "subtitle": "Spacious family home",
+            "location": "Delhi, South Extension",
+            "price": "₹2.5 Crores",
+            "propertyType": "Independent Villa",
+            "size": "2800 sq. ft."
+        },
+        {
+            "id": 3,
+            "image": "/assets/property3.jpg",
+            "title": "Office Space",
+            "subtitle": "Prime commercial property",
+            "location": "Noida, Sector 62",
+            "price": "₹1.2 Crores",
+            "propertyType": "Commercial",
+            "size": "1600 sq. ft."
+        },
+        {
+            "id": 4,
+            "image": "/assets/property4.jpg",
+            "title": "Studio Apartment",
+            "subtitle": "Compact city living",
+            "location": "Faridabad, Sector 21",
+            "price": "₹35 Lakhs",
+            "propertyType": "Residential Apartment",
+            "size": "600 sq. ft."
+        },
+        {
+            "id": 5,
+            "image": "/assets/property5.jpg",
+            "title": "Penthouse",
+            "subtitle": "Luxury with a view",
+            "location": "Gurugram, DLF Phase 5",
+            "price": "₹4.5 Crores",
+            "propertyType": "Penthouse",
+            "size": "3200 sq. ft."
+        },
+        {
+            "id": 6,
+            "image": "/assets/property6.jpg",
+            "title": "Retail Space",
+            "subtitle": "High street location",
+            "location": "Delhi, Connaught Place",
+            "price": "₹3.8 Crores",
+            "propertyType": "Commercial",
+            "size": "1800 sq. ft."
+        }
+    ],
+    "all-locations": [
+        "Gurugram",
+        "Delhi",
+        "Noida",
+        "Faridabad",
+        "Ghaziabad",
+        "Mumbai",
+        "Bangalore",
+        "Hyderabad",
+        "Chennai",
+        "Pune",
+        "Kolkata",
+        "Jaipur"
+    ]
+}
