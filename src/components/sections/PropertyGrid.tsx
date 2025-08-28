@@ -4,20 +4,40 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import Image from "next/image";
-import type { Property } from "@/types";
-import { propertyService } from "@/lib/services/propertyService";
+import type { PropertyFilters } from "@/types";
+import { propertyFiltersService } from "@/lib/services/propertyFiltersService";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const PropertyCard = ({ property }: { property: Property }) => {
+const PropertyCard = ({ property }: { property: PropertyFilters }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCardClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSaveProperty = async (propertyId: number) => {
+    try {
+      // Implement save property functionality
+      console.log("Saving property:", propertyId);
+      // await propertyFiltersService.saveProperty(propertyId);
+    } catch (error) {
+      console.error("Error saving property:", error);
+    }
+  };
+
   return (
     <Card
       hover
-      className="group overflow-hidden h-full transition-all duration-300 hover:shadow-xl"
+      className="group overflow-hidden h-full transition-all duration-300 hover:shadow-xl w-full"
     >
       <CardHeader className="h-40 sm:h-44 md:h-48 lg:h-52 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/40 z-10" />
         <Image
-          src={property.image}
+          src={property.main_image}
           alt={property.title}
           fill
           className="object-cover transform group-hover:scale-110 transition-transform duration-500"
@@ -29,7 +49,7 @@ const PropertyCard = ({ property }: { property: Property }) => {
         <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight line-clamp-2">
           {property.title}
         </h3>
-        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed flex-1 line-clamp-2 sm:line-clamp-3">
+        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed flex-1 line-clamp-3 overflow-hidden">
           {property.description}
         </p>
       </CardContent>
@@ -38,30 +58,49 @@ const PropertyCard = ({ property }: { property: Property }) => {
 };
 
 const PropertyGrid = () => {
-  const [properties, setProperties] = React.useState<Property[]>([]);
+  const [properties, setProperties] = React.useState<PropertyFilters[]>([]);
+  const [featuredProperties, setFeaturedProperties] = React.useState<
+    PropertyFilters[]
+  >([]);
   const controls = useAnimation();
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll animation
   useEffect(() => {
-    if (!isHovered) {
+    if (!isHovered && featuredProperties.length > 4) {
       controls.start({
-        x: ["0%", "-50%"],
+        x: [0, -(featuredProperties.length - 4) * (25 + 1.5)], // Move by card width + gap
         transition: {
-          duration: 30,
+          duration: featuredProperties.length * 3, // Slower for more properties
           ease: "linear",
           repeat: Infinity,
+          repeatType: "reverse", // Go back and forth
         },
       });
     } else {
       controls.stop();
     }
-  }, [controls, isHovered]);
+  }, [controls, isHovered, featuredProperties]);
 
-  // Fetch properties
+  // Fetch properties and filter featured ones
   useEffect(() => {
-    propertyService.getAll().then(setProperties);
+    const fetchProperties = async () => {
+      try {
+        const allProperties = await propertyFiltersService.getAll();
+        setProperties(allProperties);
+
+        // Filter only featured properties
+        const featured = allProperties.filter(
+          (property) => property.is_featured === true
+        );
+        setFeaturedProperties(featured);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      }
+    };
+
+    fetchProperties();
   }, []);
 
   // Manual navigation functions
@@ -81,6 +120,22 @@ const PropertyGrid = () => {
     }
   };
 
+  // Don't render if no featured properties
+  if (featuredProperties.length === 0) {
+    return (
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Featured Properties
+          </h2>
+          <p className="text-gray-600 text-sm sm:text-base">
+            No featured properties available at the moment.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
@@ -96,7 +151,7 @@ const PropertyGrid = () => {
         </div>
 
         {/* Navigation arrows for larger screens */}
-        <div className="hidden sm:flex absolute top-90 left-10 right-10  -translate-y-1/2 z-30 justify-between pointer-events-none">
+        <div className="hidden sm:flex absolute top-90 left-10 right-10 -translate-y-1/2 z-30 justify-between pointer-events-none">
           <button
             onClick={scrollLeft}
             className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors ml-4 pointer-events-auto cursor-pointer"
@@ -114,7 +169,7 @@ const PropertyGrid = () => {
         </div>
 
         {/* Carousel */}
-        <div 
+        <div
           className="relative w-full overflow-hidden"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -122,8 +177,11 @@ const PropertyGrid = () => {
         >
           {/* Desktop: 4 items visible, continuous scroll */}
           <motion.div className="hidden sm:flex gap-6" animate={controls}>
-            {[...properties, ...properties].map((property, i) => (
-              <div key={i} className="min-w-[25%] flex-shrink-0">
+            {featuredProperties.map((property, i) => (
+              <div
+                key={property.property_id}
+                className="min-w-[calc(25%-1.125rem)] max-w-[calc(25%-1.125rem)] flex-shrink-0"
+              >
                 <PropertyCard property={property} />
               </div>
             ))}
@@ -131,10 +189,10 @@ const PropertyGrid = () => {
 
           {/* Mobile: 3 items with middle focus */}
           <div className="flex sm:hidden gap-4 justify-center overflow-x-auto no-scrollbar px-2 snap-x snap-mandatory">
-            {properties.map((property, i) => (
+            {featuredProperties.map((property, i) => (
               <div
-                key={property.id}
-                className="snap-center transition-all duration-300 flex-shrink-0 w-[80%]"
+                key={property.property_id}
+                className="snap-center transition-all duration-300 flex-shrink-0 w-[80%] max-w-[300px]"
                 style={{
                   transform: `scale(${i === 1 ? 1.05 : 0.9})`,
                   opacity: i === 1 ? 1 : 1,

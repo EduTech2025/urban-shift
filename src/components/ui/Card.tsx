@@ -1,10 +1,11 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;
+  onClick?: () => void;
 }
 
 interface CardHeaderProps {
@@ -17,13 +18,16 @@ interface CardContentProps {
   className?: string;
 }
 
-const Card = ({ children, className, hover = false }: CardProps) => {
+const Card = ({ children, className, hover = false, onClick }: CardProps) => {
   return (
-    <div className={cn(
-      'bg-white rounded-xl overflow-hidden shadow-lg',
-      hover && 'hover:shadow-xl transition-shadow duration-300 cursor-pointer',
-      className
-    )}>
+    <div
+      className={cn(
+        "bg-white rounded-2xl overflow-hidden shadow-md transition-all duration-300",
+        hover && "hover:shadow-xl cursor-pointer",
+        className
+      )}
+      onClick={onClick}
+    >
       {children}
     </div>
   );
@@ -31,17 +35,13 @@ const Card = ({ children, className, hover = false }: CardProps) => {
 
 const CardHeader = ({ children, className }: CardHeaderProps) => {
   return (
-    <div className={cn('relative overflow-hidden', className)}>
-      {children}
-    </div>
+    <div className={cn("relative overflow-hidden", className)}>{children}</div>
   );
 };
 
 const CardContent = ({ children, className }: CardContentProps) => {
   return (
-    <div className={cn('p-4', className)}>
-      {children}
-    </div>
+    <div className={cn("flex flex-col flex-1 p-4", className)}>{children}</div>
   );
 };
 

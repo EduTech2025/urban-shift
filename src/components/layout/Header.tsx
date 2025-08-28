@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, MessageCircle, User, Bookmark, Menu, X } from "lucide-react";
+import { Search, MessageCircle, User, Bookmark, Menu, X, LogOut, Heart } from "lucide-react";
 import Navigation from "./Navigation";
-import type { ActionButton as ActionButtonType, NavigationItem } from "@/types";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import type { ActionButtonType, NavigationItem, ActionButtonProps } from "@/types";
 import Image from "next/image";
 // import type { NavigationItem } from "@/types";
 
@@ -78,7 +80,6 @@ const NavigationWithSearch = ({
             : ""
         }`}
       >
-        
         <Search className="h-4 w-4 text-gray-400 mr-2" />
         <input
           type="text"
@@ -93,10 +94,23 @@ const NavigationWithSearch = ({
 const ActionButton = ({
   icon,
   label,
+  href,
+  onClick,
   isMobile = false,
-}: ActionButtonType & { isMobile?: boolean }) => {
+}: ActionButtonProps) => {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (href) {
+      router.push(href);
+    }
+  };
+
   return (
     <button
+      onClick={handleClick}
       className={`flex cursor-pointer ${
         isMobile
           ? "items-center justify-start space-x-3 w-full py-3 px-4"
@@ -110,32 +124,71 @@ const ActionButton = ({
 };
 
 const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
-  const actions: ActionButtonType[] = [
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
+  const commonActions: ActionButtonType[] = [
     {
-      icon: <MessageCircle className="h-4 w-4 cursor-pointer" />,
+      icon: <MessageCircle className="h-4 w-4" />,
       label: "Contact Us",
+      href: "/contact",
     },
     {
-      icon: <User className="h-4 w-4 cursor-pointer" />,
-      label: "Log In/Sign In",
+      icon: <Bookmark className="h-4 w-4" />,
+      label: "Saved",
+      href: "/saved",
+      requiresAuth: true,
     },
-    { icon: <Bookmark className="h-4 w-4 cursor-pointer" />, label: "Saved" },
   ];
+
+  const authActions: ActionButtonType[] = user
+    ? [
+        {
+          icon: <User className="h-4 w-4" />,
+          label: "My Account",
+          href: "/account",
+        },
+        {
+          icon: <LogOut className="h-4 w-4" />,
+          label: "Log Out",
+          onClick: handleLogout,
+        },
+      ]
+    : [
+        {
+          icon: <User className="h-4 w-4" />,
+          label: "Log In / Sign Up",
+          href: "/login",
+        },
+      ];
+
+  // Filter actions based on authentication requirements
+  const filteredActions = commonActions.filter(
+    (action) => !action.requiresAuth || (action.requiresAuth && user)
+  );
+
+  const allActions = [...filteredActions, ...authActions];
 
   return (
     <div
       className={`flex cursor-pointer ${
         isMobile
-          ? "flex-col space-y-2 w-full border-t border-gray-200 pt-4"
-          : "items-center space-x-4 xl:space-x-6"
+          ? "flex-col space-y-1 w-full border-t border-gray-200 pt-4"
+          : "items-center space-x-6 xl:space-x-8"
       }`}
     >
-      {actions.map((action) => (
+      {allActions.map((action) => (
         <ActionButton key={action.label} {...action} isMobile={isMobile} />
       ))}
     </div>
   );
 };
+
 
 const MobileMenu = ({
   isOpen,

@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronDown, Filter, X, Search, Plus, MapPin } from "lucide-react";
-import Image from "next/image";
-import type { PropertyFilters } from "@/types";
-
+import { PropertyFilters } from "@/types";
 import { propertyFiltersService } from "@/lib/services/propertyFiltersService";
 import { locationService } from "@/lib/services/locationService";
+import PropertyCard from "@/components/property/PropertyCard";
+import { FilterSection } from "@/components/filters/FilterSection";
+import { PriceFilter } from "@/components/filters/PriceFilter";
+import { LocationFilter } from "@/components/filters/LocationFilter";
+import { CheckboxFilter } from "@/components/filters/CheckboxFilter";
+import { MobileFiltersModal } from "@/components/filters/MobileFiltersModal";
+import { HeaderControls } from "@/components/filters/HeaderControls";
 
-// Define the type for your filters
 interface Filters {
   price: number;
   location: string[];
@@ -32,11 +35,6 @@ const PropertyFilterSection = () => {
   const [properties, setProperties] = useState<PropertyFilters[]>([]);
   const [allLocations, setAllLocations] = useState<string[]>([]);
 
-
-  const filteredLocations = allLocations.filter((location) =>
-    location.toLowerCase().includes(locationSearch.toLowerCase())
-  );
-
   const propertyTypes = [
     "Residential",
     "Commercial",
@@ -44,19 +42,23 @@ const PropertyFilterSection = () => {
     "Rental",
   ];
   const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK"];
+  const furnishingOptions = ["Furnished", "Unfurnished", "Semi-Furnished"];
+  const availabilityOptions = ["Ready to Move", "Under Construction"];
+  const parkingOptions = ["Yes", "No"];
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      price: parseInt(e.target.value),
-    }));
+  // Fetch properties and locations
+  useEffect(() => {
+    propertyFiltersService.getAll().then(setProperties);
+    locationService.getAll().then(setAllLocations);
+  }, []);
+
+  // Filter handlers
+  const handlePriceChange = (price: number) => {
+    setSelectedFilters((prev) => ({ ...prev, price }));
   };
 
-  const handleAreaSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      areaSize: parseInt(e.target.value),
-    }));
+  const handleAreaSizeChange = (areaSize: number) => {
+    setSelectedFilters((prev) => ({ ...prev, areaSize }));
   };
 
   const handleLocationSelect = (location: string) => {
@@ -70,219 +72,58 @@ const PropertyFilterSection = () => {
     setShowLocationDropdown(false);
   };
 
-  const removeLocation = (locationToRemove: string) => {
+  const handleLocationRemove = (locationToRemove: string) => {
     setSelectedFilters((prev) => ({
       ...prev,
       location: prev.location.filter((loc) => loc !== locationToRemove),
     }));
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showLocationDropdown) {
-        const target = event.target as HTMLElement;
-        if (!target.closest(".location-filter-container")) {
-          setShowLocationDropdown(false);
-        }
-      }
+  const handleCheckboxChange =
+    (filterType: keyof Filters) => (value: string) => {
+      setSelectedFilters((prev) => {
+        const currentValues = prev[filterType] as string[];
+        const newValues = currentValues.includes(value)
+          ? currentValues.filter((v) => v !== value)
+          : [...currentValues, value];
+
+        return { ...prev, [filterType]: newValues };
+      });
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showLocationDropdown]);
+  const clearAllFilters = () => {
+    setSelectedFilters({
+      price: 100,
+      location: [],
+      propertyType: [],
+      areaSize: 100,
+      bhk: [],
+    });
+  };
 
-  // Fetch properties
-  useEffect(() => {
-    propertyFiltersService.getAll().then(setProperties);
-    locationService.getAll().then(setAllLocations);
-  }, []);
+  // Filters content component
+  const FiltersContent = () => (
+    <>
+      <PriceFilter value={selectedFilters.price} onChange={handlePriceChange} />
 
-  const FiltersContent = ({ isMobile = false }) => (
-    <div
-      className={`
-      ${isMobile ? "p-4" : "w-80 lg:w-90 bg-white rounded-2xl p-6 h-fit"}
-    `}
-    >
-      {/* Apply Filter Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-6 gap-3 sm:gap-0">
-        <button className="bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors">
-          <Filter className="w-4 h-4" />
-          Apply Filter
-        </button>
+      <LocationFilter
+        selectedLocations={selectedFilters.location}
+        allLocations={allLocations}
+        searchQuery={locationSearch}
+        isDropdownOpen={showLocationDropdown}
+        onSearchChange={setLocationSearch}
+        onLocationSelect={handleLocationSelect}
+        onLocationRemove={handleLocationRemove}
+        onDropdownToggle={setShowLocationDropdown}
+      />
 
-        <button
-          onClick={() =>
-            setSelectedFilters({
-              price: 100,
-              location: [],
-              propertyType: [],
-              areaSize: 100,
-              bhk: [],
-            })
-          }
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
-        >
-          Clear All
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Price Filter */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">Price</h3>
-          <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">
-            ₹{selectedFilters.price}{" "}
-            {selectedFilters.price >= 100 ? "Lakhs+" : "Lakhs"}
-          </span>
-        </div>
-        <div className="mb-2">
-          <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option>Unit</option>
-            <option>Lakhs</option>
-            <option>Crores</option>
-          </select>
-        </div>
-        <div className="relative">
-          <input
-            type="range"
-            min="20"
-            max="500"
-            value={selectedFilters.price}
-            onChange={handlePriceChange}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-          <style jsx>{`
-            .slider::-webkit-slider-thumb {
-              appearance: none;
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              background: #4f46e5;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            }
-            .slider::-moz-range-thumb {
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              background: #4f46e5;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            }
-          `}</style>
-        </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>₹20L</span>
-          <span>₹5Cr+</span>
-        </div>
-      </div>
-
-      {/* Location Filter */}
-      <div className="mb-6 sm:mb-8 location-filter-container">
-        <h3 className="font-semibold text-gray-900 mb-4">Location/ Area</h3>
-
-        {/* Selected Locations */}
-        {selectedFilters.location.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {selectedFilters.location.map((location, index) => (
-              <span
-                key={index}
-                className="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full flex items-center gap-1"
-              >
-                <MapPin className="w-3 h-3" />
-                {location}
-                <button
-                  onClick={() => removeLocation(location)}
-                  className="ml-1 text-indigo-600 hover:text-indigo-800"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Location Search */}
-        <div className="relative mb-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search locations..."
-              value={locationSearch}
-              onChange={(e) => {
-                setLocationSearch(e.target.value);
-                setShowLocationDropdown(true);
-              }}
-              onFocus={() => setShowLocationDropdown(true)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-          </div>
-
-          {/* Location Dropdown */}
-          {showLocationDropdown && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              {filteredLocations.length > 0 ? (
-                filteredLocations.map((location, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
-                    onClick={() => handleLocationSelect(location)}
-                  >
-                    <span>{location}</span>
-                    <Plus className="w-4 h-4 text-gray-500" />
-                  </div>
-                ))
-              ) : (
-                <div className="px-4 py-2 text-gray-500 text-sm">
-                  No locations found
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Popular Locations Quick Select */}
-        <div className="mb-3">
-          <p className="text-xs text-gray-500 mb-2">Popular locations:</p>
-          <div className="flex flex-wrap gap-2">
-            {allLocations.slice(0, 4).map((location, index) => (
-              <button
-                key={index}
-                onClick={() => handleLocationSelect(location)}
-                className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
-              >
-                {location}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Property Type Filter */}
-      <div className="mb-6 sm:mb-8">
-        <h3 className="font-semibold text-gray-900 mb-4">Property type</h3>
-        <div className="space-y-3 mb-3">
-          {propertyTypes.map((type, index) => (
-            <label key={index} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="text-sm text-gray-700">{type}</span>
-            </label>
-          ))}
-        </div>
-        <button className="text-blue-500 text-sm hover:underline">
-          More options...
-        </button>
-      </div>
+      <CheckboxFilter
+        title="Property type"
+        options={propertyTypes}
+        selectedValues={selectedFilters.propertyType}
+        onValueChange={handleCheckboxChange("propertyType")}
+        showMore
+      />
 
       {/* Area Size Filter */}
       <div className="mb-6 sm:mb-8">
@@ -299,27 +140,18 @@ const PropertyFilterSection = () => {
             min="0"
             max="200"
             value={selectedFilters.areaSize}
-            onChange={handleAreaSizeChange}
+            onChange={(e) => handleAreaSizeChange(parseInt(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider mt-4"
           />
         </div>
       </div>
 
-      {/* BHK Filter */}
-      <div className="mb-4">
-        <h3 className="font-semibold text-gray-900 mb-4">BHK</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {bhkOptions.map((bhk, index) => (
-            <label key={index} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="text-sm text-gray-700">{bhk}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <CheckboxFilter
+        title="BHK"
+        options={bhkOptions}
+        selectedValues={selectedFilters.bhk}
+        onValueChange={handleCheckboxChange("bhk")}
+      />
 
       {/* Parking Space */}
       <div>
@@ -327,7 +159,7 @@ const PropertyFilterSection = () => {
           Parking Space
         </h3>
         <div className="flex space-x-4">
-          {["Yes", "No"].map((option, index) => (
+          {parkingOptions.map((option, index) => (
             <label
               key={index}
               className="flex-1 flex items-center justify-center cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 focus-within:ring-2 focus-within:ring-indigo-500 transition-colors"
@@ -349,19 +181,12 @@ const PropertyFilterSection = () => {
         <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
           Furnishing
         </h3>
-        <div className="grid grid-cols-2 gap-4">
-          {["Furnished", "Unfurnished", "Semi-Furnished"].map(
-            (option, index) => (
-              <label key={index} className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span className="text-sm text-gray-700">{option}</span>
-              </label>
-            )
-          )}
-        </div>
+        <CheckboxFilter
+          options={furnishingOptions}
+          selectedValues={[]}
+          onValueChange={() => {}}
+          title=""
+        />
       </div>
 
       {/* Availability */}
@@ -369,155 +194,36 @@ const PropertyFilterSection = () => {
         <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
           Availability
         </h3>
-        <div className="grid grid-cols-1 gap-4">
-          {["Ready to Move", "Under Construction"].map((option, index) => (
-            <label key={index} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <span className="text-sm text-gray-700">{option}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const MobileFiltersModal = () => {
-    if (!showMobileFilters) return null;
-
-    return (
-      <div className="lg:hidden fixed inset-0 z-50">
-        {/* Overlay */}
-        <div
-          className="absolute inset-0 bg-black bg-opacity-50"
-          onClick={() => setShowMobileFilters(false)}
+        <CheckboxFilter
+          options={availabilityOptions}
+          selectedValues={[]}
+          onValueChange={() => {}}
+          title=""
         />
-
-        {/* Modal */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            <button
-              onClick={() => setShowMobileFilters(false)}
-              className="p-2 text-gray-500 hover:text-gray-700"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <FiltersContent isMobile />
-        </div>
       </div>
-    );
-  };
+    </>
+  );
 
   return (
     <div className="bg-[#faf3ee] m-2 sm:m-4 lg:m-7 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl lg:shadow-2xl min-h-screen p-3 sm:p-6 lg:p-10">
       <div className="max-w-10xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 sm:mb-6 gap-4">
-          {/* Top Row - Controls */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-            {/* Sort By Dropdown */}
-            <div className="relative">
-              <select className="w-full sm:w-auto bg-white border border-gray-200 rounded-lg px-4 py-2 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm">
-                <option>Sort By</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest First</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-            </div>
-
-            {/* Property and Rentals Dropdown */}
-            <div className="flex gap-2">
-              <div className="relative flex-1 sm:flex-none">
-                <select className="w-full sm:w-auto bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2 pr-8 sm:pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm">
-                  <option>Property</option>
-                  <option>For Sale</option>
-                  <option>For Rent</option>
-                </select>
-                <ChevronDown className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-              </div>
-
-              <div className="relative flex-1 sm:flex-none">
-                <select className="w-full sm:w-auto bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2 pr-8 sm:pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm">
-                  <option>Rentals</option>
-                  <option>Short Term</option>
-                  <option>Long Term</option>
-                </select>
-                <ChevronDown className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Mobile Filter Button */}
-            <button
-              onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-            </button>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for..."
-              className="bg-white border border-gray-200 rounded-lg pl-4 pr-12 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-600 rounded-lg p-2">
-              <Search className="w-4 h-4 text-white" />
-            </div>
-          </div>
-        </div>
+        <HeaderControls
+          onMobileFiltersOpen={() => setShowMobileFilters(true)}
+        />
 
         <div className="flex gap-4 sm:gap-6">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block">
-            <FiltersContent />
+            <FilterSection onClearFilters={clearAllFilters}>
+              <FiltersContent />
+            </FilterSection>
           </div>
 
           {/* Property Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {properties.map((property, index) => (
-                <div
-                  key={property.id}
-                  className="bg-white rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative h-36 sm:h-40 lg:h-48 overflow-hidden">
-                    <Image
-                      src={property.image}
-                      alt={property.title}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      priority={index === 0}
-                    />
-                  </div>
-                  <div className="p-4 sm:p-5 lg:p-6">
-                    <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">
-                      {property.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">
-                      {property.subtitle}
-                    </p>
-
-                    <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
-                      <p>{property.location}</p>
-                      <p>{property.price}</p>
-                      <p>{property.propertyType}</p>
-                      <p>{property.size}</p>
-                    </div>
-
-                    <button className="text-blue-500 text-xs sm:text-sm font-medium hover:text-blue-600 transition-colors flex items-center cursor-pointer">
-                      Know More →
-                    </button>
-                  </div>
-                </div>
+              {properties.map((property) => (
+                <PropertyCard key={property.property_id} property={property} />
               ))}
             </div>
           </div>
@@ -525,7 +231,12 @@ const PropertyFilterSection = () => {
       </div>
 
       {/* Mobile Filters Modal */}
-      <MobileFiltersModal />
+      <MobileFiltersModal
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+      >
+        <FiltersContent />
+      </MobileFiltersModal>
     </div>
   );
 };

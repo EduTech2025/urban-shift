@@ -1,129 +1,151 @@
 {
-    "properties": [
-        {
-            "id": 1,
-            "gradient": "from-blue-400 to-blue-600",
-            "image": "/assets/build1.jpg",
-            "title": "Golf Course Road and Extension",
-            "description": "Premium urban developments"
-        },
-        {
-            "id": 2,
-            "gradient": "from-amber-400 to-orange-500",
-            "image": "/assets/build2.jpg",
-            "title": "Sohna Road",
-            "description": "Family-friendly communities"
-        },
-        {
-            "id": 3,
-            "gradient": "from-purple-400 to-indigo-600",
-            "image": "/assets/build3.jpg",
-            "title": "Nirvana Country",
-            "description": "Panoramic urban views"
-        },
-        {
-            "id": 4,
-            "gradient": "from-green-400 to-teal-600",
-            "image": "/assets/build4.jpg",
-            "title": "DLF City Phase 1-5 MG Road",
-            "description": "Premium properties"
-        },
-        {
-            "id": 5,
-            "gradient": "from-green-400 to-teal-600",
-            "image": "/assets/build4.jpg",
-            "title": "DLF City Phase 1-5 MG Road",
-            "description": "Premium properties"
-        },
-        {
-            "id": 6,
-            "gradient": "from-green-400 to-teal-600",
-            "image": "/assets/build4.jpg",
-            "title": "DLF City Phase 1-5 MG Road",
-            "description": "Premium properties"
-        },
-        {
-            "id": 7,
-            "gradient": "from-green-400 to-teal-600",
-            "image": "/assets/build4.jpg",
-            "title": "DLF City Phase 1-5 MG Road",
-            "description": "Premium properties"
-        }
-    ],
     "property-filters": [
         {
-            "id": 1,
-            "image": "/assets/property1.jpg",
+            "property_id": 1,
+            "main_image": "/assets/property1.jpg",
+            "show_images": [
+                "/assets/property1-1.jpg",
+                "/assets/property1-2.jpg",
+                "/assets/property1-3.jpg"
+            ],
             "title": "Luxury Apartment",
             "subtitle": "Modern living space",
+            "description": "A beautifully designed luxury apartment with modern amenities, located in the heart of Gurugram. Perfect for urban professionals seeking comfort and style.",
             "location": "Gurugram, Sector 54",
-            "price": "₹85 Lakhs",
+            "location_map": "https://maps.google.com/?q=Gurugram+Sector+54",
+            "price": 85,
+            "price_unit": "Lakhs",
             "propertyType": "Residential Apartment",
-            "size": "1200 sq. ft."
+            "in_sector": true,
+            "size": 1200,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "3BHK",
+            "has_parking_space": true,
+            "furnishing": "Semi-Furnished",
+            "availability": "Ready to Move",
+            "is_featured": false
         },
         {
-            "id": 2,
-            "image": "/assets/property2.jpg",
-            "title": "Villa",
+            "property_id": 2,
+            "main_image": "/assets/property2.jpg",
+            "show_images": [
+                "/assets/property2-1.jpg",
+                "/assets/property2-2.jpg",
+                "/assets/property2-3.jpg"
+            ],
+            "title": "Luxury Villa",
             "subtitle": "Spacious family home",
+            "description": "An exquisite independent villa with premium finishes, private garden, and modern amenities. Perfect for families looking for space and privacy.",
             "location": "Delhi, South Extension",
-            "price": "₹2.5 Crores",
+            "location_map": "https://maps.google.com/?q=Delhi+South+Extension",
+            "price": 2.5,
+            "price_unit": "Crores",
             "propertyType": "Independent Villa",
-            "size": "2800 sq. ft."
+            "in_sector": false,
+            "size": 2800,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "4BHK",
+            "has_parking_space": true,
+            "furnishing": "Furnished",
+            "availability": "Ready to Move",
+            "is_featured": true
         },
         {
-            "id": 3,
-            "image": "/assets/property3.jpg",
-            "title": "Office Space",
+            "property_id": 3,
+            "main_image": "/assets/property3.jpg",
+            "show_images": [
+                "/assets/property3-1.jpg",
+                "/assets/property3-2.jpg"
+            ],
+            "title": "Premium Office Space",
             "subtitle": "Prime commercial property",
+            "description": "A strategically located commercial space ideal for businesses looking to establish a presence in Noida's growing business district.",
             "location": "Noida, Sector 62",
-            "price": "₹1.2 Crores",
+            "location_map": "https://maps.google.com/?q=Noida+Sector+62",
+            "price": 1.2,
+            "price_unit": "Crores",
             "propertyType": "Commercial",
-            "size": "1600 sq. ft."
+            "in_sector": true,
+            "size": 1600,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "RK",
+            "has_parking_space": true,
+            "furnishing": "Unfurnished",
+            "availability": "Ready to Move",
+            "is_featured": false
         },
         {
-            "id": 4,
-            "image": "/assets/property4.jpg",
+            "property_id": 4,
+            "main_image": "/assets/property4.jpg",
+            "show_images": [
+                "/assets/property4-1.jpg"
+            ],
             "title": "Studio Apartment",
             "subtitle": "Compact city living",
+            "description": "A compact and efficient studio apartment perfect for singles or couples. Located in a well-connected area with all basic amenities nearby.",
             "location": "Faridabad, Sector 21",
-            "price": "₹35 Lakhs",
+            "location_map": "https://maps.google.com/?q=Faridabad+Sector+21",
+            "price": 35,
+            "price_unit": "Lakhs",
             "propertyType": "Residential Apartment",
-            "size": "600 sq. ft."
+            "in_sector": true,
+            "size": 600,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "1BHK",
+            "has_parking_space": false,
+            "furnishing": "Semi-Furnished",
+            "availability": "Under Construction",
+            "is_featured": false
         },
         {
-            "id": 5,
-            "image": "/assets/property5.jpg",
+            "property_id": 5,
+            "main_image": "/assets/property5.jpg",
+            "show_images": [
+                "/assets/property5-1.jpg",
+                "/assets/property5-2.jpg",
+                "/assets/property5-3.jpg",
+                "/assets/property5-4.jpg"
+            ],
             "title": "Penthouse",
             "subtitle": "Luxury with a view",
+            "description": "An exclusive penthouse offering panoramic city views, premium amenities, and luxurious finishes. The epitome of sophisticated urban living.",
             "location": "Gurugram, DLF Phase 5",
-            "price": "₹4.5 Crores",
+            "location_map": "https://maps.google.com/?q=Gurugram+DLF+Phase+5",
+            "price": 4.5,
+            "price_unit": "Crores",
             "propertyType": "Penthouse",
-            "size": "3200 sq. ft."
+            "in_sector": true,
+            "size": 3200,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "4BHK",
+            "has_parking_space": true,
+            "furnishing": "Furnished",
+            "availability": "Ready to Move",
+            "is_featured": true
         },
         {
-            "id": 6,
-            "image": "/assets/property6.jpg",
+            "property_id": 6,
+            "main_image": "/assets/property6.jpg",
+            "show_images": [
+                "/assets/property6-1.jpg",
+                "/assets/property6-2.jpg"
+            ],
             "title": "Retail Space",
             "subtitle": "High street location",
+            "description": "Prime retail space in one of Delhi's most prestigious commercial areas. High footfall and excellent visibility for businesses.",
             "location": "Delhi, Connaught Place",
-            "price": "₹3.8 Crores",
+            "location_map": "https://maps.google.com/?q=Delhi+Connaught+Place",
+            "price": 3.8,
+            "price_unit": "Crores",
             "propertyType": "Commercial",
-            "size": "1800 sq. ft."
+            "in_sector": false,
+            "size": 1800,
+            "size_unit": "sq. ft.",
+            "bhk_rk": "RK",
+            "has_parking_space": true,
+            "furnishing": "Unfurnished",
+            "availability": "Ready to Move",
+            "is_featured": true
         }
-    ],
-    "all-locations": [
-        "Gurugram",
-        "Delhi",
-        "Noida",
-        "Faridabad",
-        "Ghaziabad",
-        "Mumbai",
-        "Bangalore",
-        "Hyderabad",
-        "Chennai",
-        "Pune",
-        "Kolkata",
-        "Jaipur"
     ]
 }
