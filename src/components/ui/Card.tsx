@@ -33,6 +33,12 @@ const Card = ({ children, className, hover = false, onClick }: CardProps) => {
   );
 };
 
+const CardTitle = ({ children, className }: CardHeaderProps) => {
+  return (
+    <div className={cn("relative overflow-hidden", className)}>{children}</div>
+  );
+};
+
 const CardHeader = ({ children, className }: CardHeaderProps) => {
   return (
     <div className={cn("relative overflow-hidden", className)}>{children}</div>
@@ -45,4 +51,4 @@ const CardContent = ({ children, className }: CardContentProps) => {
   );
 };
 
-export { Card, CardHeader, CardContent };
+export { Card, CardHeader, CardContent, CardTitle };

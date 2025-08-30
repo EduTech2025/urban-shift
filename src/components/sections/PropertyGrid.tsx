@@ -4,35 +4,29 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import Image from "next/image";
-import type { PropertyFilters } from "@/types";
-import { propertyFiltersService } from "@/lib/services/propertyFiltersService";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Property } from "@/types";
+import { propertyService } from "@/lib/services/propertyService";
+import { ChevronLeft, ChevronRight, Star, MapPin, Square } from "lucide-react";
 
-const PropertyCard = ({ property }: { property: PropertyFilters }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+interface PropertyCardProps {
+  property: Property;
+  onPropertyClick: (property: Property) => void;
+}
 
+const PropertyCard = ({ property, onPropertyClick }: PropertyCardProps) => {
   const handleCardClick = () => {
-    setIsModalOpen(true);
+    onPropertyClick(property);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleSaveProperty = async (propertyId: number) => {
-    try {
-      // Implement save property functionality
-      console.log("Saving property:", propertyId);
-      // await propertyFiltersService.saveProperty(propertyId);
-    } catch (error) {
-      console.error("Error saving property:", error);
-    }
+  const formatPrice = () => {
+    return `₹${property.price.toLocaleString()} ${property.price_unit}`;
   };
 
   return (
     <Card
       hover
-      className="group overflow-hidden h-full transition-all duration-300 hover:shadow-xl w-full"
+      onClick={handleCardClick}
+      className="group overflow-hidden h-full transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-2 hover:scale-105 w-full"
     >
       <CardHeader className="h-40 sm:h-44 md:h-48 lg:h-52 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/40 z-10" />
@@ -43,13 +37,46 @@ const PropertyCard = ({ property }: { property: PropertyFilters }) => {
           className="object-cover transform group-hover:scale-110 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
+
+        {/* Featured Badge */}
+        {property.is_featured && (
+          <div className="absolute top-3 left-3 z-30 bg-amber-400/90 backdrop-blur-sm text-amber-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+            <Star className="w-3 h-3 mr-1 fill-current" />
+            Featured
+          </div>
+        )}
+
+        {/* Price Badge */}
+        <div className="absolute bottom-3 right-3 z-30 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold text-gray-900">
+          {formatPrice()}
+        </div>
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-20" />
       </CardHeader>
       <CardContent className="pt-3 sm:pt-4 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-5 lg:pb-6 flex-1 flex flex-col">
         <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight line-clamp-2">
           {property.title}
         </h3>
-        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed flex-1 line-clamp-3 overflow-hidden">
+
+        {/* Location */}
+        <div className="flex items-center text-gray-500 mb-2 text-xs sm:text-sm">
+          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+          <span className="truncate">{property.location}</span>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+          <div className="flex items-center">
+            <Square className="w-3 h-3 mr-1" />
+            {property.bhk_rk}
+          </div>
+          <div className="flex items-center">
+            <Square className="w-3 h-3 mr-1" />
+            {property.size} {property.size_unit}
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed flex-1 line-clamp-2 overflow-hidden">
           {property.description}
         </p>
       </CardContent>
@@ -58,10 +85,15 @@ const PropertyCard = ({ property }: { property: PropertyFilters }) => {
 };
 
 const PropertyGrid = () => {
-  const [properties, setProperties] = React.useState<PropertyFilters[]>([]);
+  const [properties, setProperties] = React.useState<Property[]>([]);
   const [featuredProperties, setFeaturedProperties] = React.useState<
-    PropertyFilters[]
+    Property[]
   >([]);
+  const [selectedProperty, setSelectedProperty] =
+    React.useState<Property | null>(null);
+  const [savedProperties, setSavedProperties] = React.useState<Set<number>>(
+    new Set()
+  );
   const controls = useAnimation();
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -87,7 +119,7 @@ const PropertyGrid = () => {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const allProperties = await propertyFiltersService.getAll();
+        const allProperties = await propertyService.getAll();
         setProperties(allProperties);
 
         // Filter only featured properties
@@ -102,6 +134,12 @@ const PropertyGrid = () => {
 
     fetchProperties();
   }, []);
+
+  // Handle property selection
+  const handlePropertyClick = (property: Property) => {
+    setSelectedProperty(property);
+  };
+
 
   // Manual navigation functions
   const scrollLeft = () => {
@@ -119,6 +157,7 @@ const PropertyGrid = () => {
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
+
 
   // Don't render if no featured properties
   if (featuredProperties.length === 0) {
@@ -182,7 +221,10 @@ const PropertyGrid = () => {
                 key={property.property_id}
                 className="min-w-[calc(25%-1.125rem)] max-w-[calc(25%-1.125rem)] flex-shrink-0"
               >
-                <PropertyCard property={property} />
+                <PropertyCard
+                  property={property}
+                  onPropertyClick={handlePropertyClick}
+                />
               </div>
             ))}
           </motion.div>
@@ -198,7 +240,10 @@ const PropertyGrid = () => {
                   opacity: i === 1 ? 1 : 1,
                 }}
               >
-                <PropertyCard property={property} />
+                <PropertyCard
+                  property={property}
+                  onPropertyClick={handlePropertyClick}
+                />
               </div>
             ))}
           </div>

@@ -7,14 +7,21 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation"; // ✅ Import router
 import { User } from "@/types";
 import { authService } from "@/lib/services/authService";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    phone: string,
+    password: string
+  ) => Promise<void>;
+  logout: () => void;
   isLoading: boolean;
 }
 
@@ -22,9 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
 
@@ -33,21 +38,22 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const router = useRouter(); // ✅ Initialize router
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on mount
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          const userData = await authService.getCurrentUser();
-          setUser(userData);
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+          const currentUser = await authService.getCurrentUser();
+          setUser(currentUser);
         }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("authToken");
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
       } finally {
         setIsLoading(false);
       }
@@ -58,47 +64,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authService.login({ email, password });
-      setUser(response.user);
-      localStorage.setItem("authToken", response.token);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const signup = async (name: string, email: string, password: string) => {
-    try {
-      const response = await authService.signup({
-        name,
+      const { user, access, refresh } = await authService.login({
         email,
         password,
-        confirmPassword: password,
-        agreeToTerms: true,
       });
-      setUser(response.user);
-      localStorage.setItem("authToken", response.token);
-    } catch (error) {
-      throw error;
+      setUser(user); // Fix here
+      localStorage.setItem("accessToken", access);
+      localStorage.setItem("refreshToken", refresh);
+      toast.success("Login successful!");
+      router.push("/"); // ✅ Redirect to main page
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Login failed.");
+      throw err;
     }
   };
 
-  const logout = async () => {
+  const signup = async (
+    name: string,
+    email: string,
+    phone: string,
+    password: string
+  ) => {
     try {
-      await authService.logout();
-      setUser(null);
-      localStorage.removeItem("authToken");
-    } catch (error) {
-      console.error("Logout failed:", error);
+      const { user, access, refresh } = await authService.signup({
+        name,
+        email,
+        phone,
+        password,
+      });
+      setUser(user);
+      localStorage.setItem("accessToken", access);
+      localStorage.setItem("refreshToken", refresh);
+      toast.success("Account created successfully!");
+      router.push("/"); // ✅ Redirect to main page
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Signup failed.");
+      throw err;
     }
   };
 
-  const value = {
-    user,
-    login,
-    signup,
-    logout,
-    isLoading,
+  const logout = () => {
+    authService.logout();
+    setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    router.push("/"); // ✅ Redirect to main page
+    toast.success("Logged out successfully!");
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

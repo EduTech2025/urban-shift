@@ -7,25 +7,30 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
+import { LoginCredentials } from "@/types";
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [credentials, setCredentials] = useState({
+  const [credentials, setCredentials] = useState<LoginCredentials>({
     email: "",
     password: "",
-    rememberMe: false,
   });
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setCredentials((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    if (name === "rememberMe") {
+      setRememberMe(checked);
+    } else {
+      setCredentials((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,10 +40,12 @@ const LoginPage = () => {
 
     try {
       await login(credentials.email, credentials.password);
-      // Redirect handled by AuthContext
+      // Redirect handled inside AuthContext
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err.response?.data?.detail || // DRF SimpleJWT sends "detail" on error
+          err.response?.data?.message ||
+          "Login failed. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -90,7 +97,7 @@ const LoginPage = () => {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -106,7 +113,7 @@ const LoginPage = () => {
               <input
                 type="checkbox"
                 name="rememberMe"
-                checked={credentials.rememberMe}
+                checked={rememberMe}
                 onChange={handleChange}
                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />

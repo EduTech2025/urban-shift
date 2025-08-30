@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, MessageCircle, User, Bookmark, Menu, X, LogOut, Heart } from "lucide-react";
+import { Search, MessageCircle, User, Menu, X, LogOut, Heart } from "lucide-react";
 import Navigation from "./Navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,7 +55,7 @@ const NavigationWithSearch = ({
       className={`${
         isMobile
           ? "flex flex-col space-y-4 w-full"
-          : "hidden lg:flex items-center bg-white rounded-full shadow-sm border border-gray-200 px-6 py-2"
+          : "hidden lg:flex items-center bg-white rounded-full shadow-sm border border-gray-200 px-6 lg:w-[50%] py-2"
       }`}
     >
       {/* Navigation */}
@@ -139,9 +139,9 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
       href: "/contact",
     },
     {
-      icon: <Bookmark className="h-4 w-4" />,
-      label: "Saved",
-      href: "/saved",
+      icon: <Heart className="h-4 w-4" />,
+      label: "Favorites",
+      href: "/favorites",
       requiresAuth: true,
     },
   ];

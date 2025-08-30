@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { PropertyFilters } from "@/types";
-import { propertyFiltersService } from "@/lib/services/propertyFiltersService";
-import { locationService } from "@/lib/services/locationService";
+import React, { useState, useEffect, useMemo } from "react";
+import { Property } from "@/types";
+import { propertyService } from "@/lib/services/propertyService";
 import PropertyCard from "@/components/property/PropertyCard";
 import { FilterSection } from "@/components/filters/FilterSection";
 import { PriceFilter } from "@/components/filters/PriceFilter";
@@ -18,39 +17,159 @@ interface Filters {
   propertyType: string[];
   areaSize: number;
   bhk: string[];
+  parking: string;
+  furnishing: string[];
+  availability: string[];
+  inSector: string;
 }
 
 const PropertyFilterSection = () => {
   const [selectedFilters, setSelectedFilters] = useState<Filters>({
-    price: 100,
+    price: 50000, // Max price in lakhs
     location: [],
     propertyType: [],
-    areaSize: 100,
+    areaSize: 10000, // Max area size in sq.ft.
     bhk: [],
+    parking: "",
+    furnishing: [],
+    availability: [],
+    inSector: "",
   });
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [properties, setProperties] = useState<PropertyFilters[]>([]);
-  const [allLocations, setAllLocations] = useState<string[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  
 
+  // Options matching your Django model choices
   const propertyTypes = [
-    "Residential",
+    "Residential Apartment",
     "Commercial",
     "Working Space",
     "Rental",
+    "Affordables",
   ];
-  const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK"];
-  const furnishingOptions = ["Furnished", "Unfurnished", "Semi-Furnished"];
+
+  const bhkOptions = ["1BHK", "2BHK", "3BHK", "4BHK", "5BHK", "RK"];
+  const furnishingOptions = ["Furnished", "Unfurnished", "Semi-furnished"];
   const availabilityOptions = ["Ready to Move", "Under Construction"];
   const parkingOptions = ["Yes", "No"];
+  const sectorOptions = ["Yes", "No", "Any"];
 
   // Fetch properties and locations
   useEffect(() => {
-    propertyFiltersService.getAll().then(setProperties);
-    locationService.getAll().then(setAllLocations);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [propertiesData] = await Promise.all([
+          propertyService.getAll(),
+        ]);
+        setAllProperties(propertiesData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  // Convert price to a common unit (lakhs) for comparison
+  const convertToLakhs = (price: number, unit: string): number => {
+    switch (unit) {
+      case "Crores":
+        return price * 100; // 1 crore = 100 lakhs
+      case "Thousand":
+        return price / 100; // 1000 thousands = 1 lakh
+      default: // Lakhs
+        return price;
+    }
+  };
+
+  // Filter properties based on selected filters
+  const filteredProperties = useMemo(() => {
+    return allProperties.filter((property) => {
+      // Price filter - convert all to lakhs for comparison
+      const propertyPriceInLakhs = convertToLakhs(
+        property.price,
+        property.price_unit
+      );
+
+      if (propertyPriceInLakhs > selectedFilters.price) {
+        return false;
+      }
+
+      // Location filter (case-insensitive partial match)
+      if (selectedFilters.location.length > 0) {
+        const propertyLocation = property.location.toLowerCase();
+        const hasMatchingLocation = selectedFilters.location.some((loc) =>
+          propertyLocation.includes(loc.toLowerCase())
+        );
+        if (!hasMatchingLocation) {
+          return false;
+        }
+      }
+
+      // Property type filter
+      if (
+        selectedFilters.propertyType.length > 0 &&
+        !selectedFilters.propertyType.includes(property.propertyType)
+      ) {
+        return false;
+      }
+
+      // Area size filter
+      if (property.size && property.size > selectedFilters.areaSize) {
+        return false;
+      }
+
+      // BHK/RK filter
+      if (
+        selectedFilters.bhk.length > 0 &&
+        !selectedFilters.bhk.includes(property.bhk_rk)
+      ) {
+        return false;
+      }
+
+      // Parking filter
+      if (selectedFilters.parking) {
+        const hasParking = selectedFilters.parking === "Yes";
+        if (property.has_parking_space !== hasParking) {
+          return false;
+        }
+      }
+
+      // Furnishing filter
+      if (
+        selectedFilters.furnishing.length > 0 &&
+        property.furnishing &&
+        !selectedFilters.furnishing.includes(property.furnishing)
+      ) {
+        return false;
+      }
+
+      // Availability filter
+      if (
+        selectedFilters.availability.length > 0 &&
+        !selectedFilters.availability.includes(property.availability)
+      ) {
+        return false;
+      }
+
+      // In Sector filter
+      if (selectedFilters.inSector && selectedFilters.inSector !== "Any") {
+        const inSector = selectedFilters.inSector === "Yes";
+        if (property.in_sector !== inSector) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allProperties, selectedFilters]);
 
   // Filter handlers
   const handlePriceChange = (price: number) => {
@@ -91,24 +210,54 @@ const PropertyFilterSection = () => {
       });
     };
 
+  const handleRadioChange = (filterType: keyof Filters) => (value: string) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  };
+
   const clearAllFilters = () => {
     setSelectedFilters({
-      price: 100,
+      price: 50000,
       location: [],
       propertyType: [],
-      areaSize: 100,
+      areaSize: 10000,
       bhk: [],
+      parking: "",
+      furnishing: [],
+      availability: [],
+      inSector: "",
     });
   };
+
+  // Get filter counts for UI feedback
+  const activeFilterCount = Object.entries(selectedFilters).reduce(
+    (count, [key, value]) => {
+      if (key === "price" && value !== 500) return count + 1;
+      if (key === "areaSize" && value !== 5000) return count + 1;
+      if (Array.isArray(value) && value.length > 0) return count + value.length;
+      if (typeof value === "string" && value !== "" && value !== "Any")
+        return count + 1;
+      return count;
+    },
+    0
+  );
 
   // Filters content component
   const FiltersContent = () => (
     <>
-      <PriceFilter value={selectedFilters.price} onChange={handlePriceChange} />
+      <PriceFilter
+        value={selectedFilters.price}
+        onChange={handlePriceChange}
+        max={500}
+        min={1}
+        unit="Lakhs"
+      />
 
       <LocationFilter
         selectedLocations={selectedFilters.location}
-        allLocations={allLocations}
+        allLocations={allProperties.map((p) => p.location)}
         searchQuery={locationSearch}
         isDropdownOpen={showLocationDropdown}
         onSearchChange={setLocationSearch}
@@ -118,57 +267,131 @@ const PropertyFilterSection = () => {
       />
 
       <CheckboxFilter
-        title="Property type"
+        title="Property Type"
         options={propertyTypes}
         selectedValues={selectedFilters.propertyType}
         onValueChange={handleCheckboxChange("propertyType")}
-        showMore
       />
 
       {/* Area Size Filter */}
       <div className="mb-6 sm:mb-8">
         <h3 className="font-semibold text-gray-900 mb-4">
-          Area size{" "}
-          <span className="text-gray-500 text-sm">(per meter sq.)</span>
+          Maximum Area Size{" "}
+          <span className="text-gray-500 text-sm">(sq. ft.)</span>
         </h3>
         <div className="relative mb-4">
           <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2">
-            {selectedFilters.areaSize}
+            {selectedFilters.areaSize} sq.ft.
           </span>
           <input
             type="range"
-            min="0"
-            max="200"
+            min="100"
+            max="5000"
+            step="100"
             value={selectedFilters.areaSize}
             onChange={(e) => handleAreaSizeChange(parseInt(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider mt-4"
           />
         </div>
+        <div className="flex justify-between text-xs text-gray-500">
+          <span>100 sq.ft.</span>
+          <span>5000+ sq.ft.</span>
+        </div>
       </div>
 
       <CheckboxFilter
-        title="BHK"
+        title="BHK/RK Configuration"
         options={bhkOptions}
         selectedValues={selectedFilters.bhk}
         onValueChange={handleCheckboxChange("bhk")}
       />
 
       {/* Parking Space */}
-      <div>
-        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
-          Parking Space
-        </h3>
-        <div className="flex space-x-4">
-          {parkingOptions.map((option, index) => (
+      <div className="mb-6">
+        <h3 className="font-semibold text-gray-900 mb-4">Parking Space</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {parkingOptions.map((option) => (
             <label
-              key={index}
-              className="flex-1 flex items-center justify-center cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 focus-within:ring-2 focus-within:ring-indigo-500 transition-colors"
+              key={option}
+              className={`flex items-center justify-center cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                selectedFilters.parking === option
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-indigo-50"
+              }`}
             >
               <input
                 type="radio"
                 name="parking"
                 className="sr-only"
                 value={option}
+                checked={selectedFilters.parking === option}
+                onChange={() => handleRadioChange("parking")(option)}
+              />
+              <span>{option}</span>
+            </label>
+          ))}
+          <label
+            className={`flex items-center justify-center cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors col-span-3 ${
+              selectedFilters.parking === ""
+                ? "border-indigo-600 bg-indigo-600 text-white"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-indigo-50"
+            }`}
+          >
+            <input
+              type="radio"
+              name="parking"
+              className="sr-only"
+              value=""
+              checked={selectedFilters.parking === ""}
+              onChange={() => handleRadioChange("parking")("")}
+            />
+            <span>Any</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Furnishing */}
+      <div className="mb-6">
+        <h3 className="font-semibold text-gray-900 mb-4">Furnishing</h3>
+        <CheckboxFilter
+          options={furnishingOptions}
+          selectedValues={selectedFilters.furnishing}
+          onValueChange={handleCheckboxChange("furnishing")}
+          title=""
+        />
+      </div>
+
+      {/* Availability */}
+      <div className="mb-6">
+        <h3 className="font-semibold text-gray-900 mb-4">Availability</h3>
+        <CheckboxFilter
+          options={availabilityOptions}
+          selectedValues={selectedFilters.availability}
+          onValueChange={handleCheckboxChange("availability")}
+          title=""
+        />
+      </div>
+
+      {/* In Sector */}
+      <div className="mb-6">
+        <h3 className="font-semibold text-gray-900 mb-4">In Sector</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {sectorOptions.map((option) => (
+            <label
+              key={option}
+              className={`flex items-center justify-center cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                selectedFilters.inSector === option
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-gray-300 bg-white text-gray-700 hover:bg-indigo-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="inSector"
+                className="sr-only"
+                value={option}
+                checked={selectedFilters.inSector === option}
+                onChange={() => handleRadioChange("inSector")(option)}
               />
               <span>{option}</span>
             </label>
@@ -176,30 +399,20 @@ const PropertyFilterSection = () => {
         </div>
       </div>
 
-      {/* Furnishing */}
-      <div className="mt-6">
-        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
-          Furnishing
-        </h3>
-        <CheckboxFilter
-          options={furnishingOptions}
-          selectedValues={[]}
-          onValueChange={() => {}}
-          title=""
-        />
-      </div>
-
-      {/* Availability */}
-      <div className="mt-6">
-        <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">
-          Availability
-        </h3>
-        <CheckboxFilter
-          options={availabilityOptions}
-          selectedValues={[]}
-          onValueChange={() => {}}
-          title=""
-        />
+      {/* Results count */}
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <p className="text-sm text-gray-600">
+          Showing {filteredProperties.length} of {allProperties.length}{" "}
+          properties
+        </p>
+        {activeFilterCount > 0 && (
+          <button
+            onClick={clearAllFilters}
+            className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+          >
+            Clear all filters
+          </button>
+        )}
       </div>
     </>
   );
@@ -209,23 +422,68 @@ const PropertyFilterSection = () => {
       <div className="max-w-10xl mx-auto">
         <HeaderControls
           onMobileFiltersOpen={() => setShowMobileFilters(true)}
+          filterCount={activeFilterCount}
         />
 
         <div className="flex gap-4 sm:gap-6">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block">
-            <FilterSection onClearFilters={clearAllFilters}>
+            <FilterSection
+              onClearFilters={clearAllFilters}
+              filterCount={activeFilterCount}
+            >
               <FiltersContent />
             </FilterSection>
           </div>
 
           {/* Property Grid */}
           <div className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {properties.map((property) => (
-                <PropertyCard key={property.property_id} property={property} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : (
+              <>
+                {/* Mobile filter summary */}
+                <div className="lg:hidden mb-4 p-4 bg-white rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      {filteredProperties.length} properties found
+                    </span>
+                    <span className="text-sm text-indigo-600">
+                      {activeFilterCount} active filters
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {filteredProperties.length > 0 ? (
+                    filteredProperties.map((property) => (
+                      <PropertyCard
+                        key={property.property_id}
+                        property={property}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12">
+                      <div className="text-gray-400 text-6xl mb-4">🏠</div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        No properties found
+                      </h3>
+                      <p className="text-gray-600">
+                        Try adjusting your filters to see more results.
+                      </p>
+                      <button
+                        onClick={clearAllFilters}
+                        className="mt-4 text-indigo-600 hover:text-indigo-700 underline"
+                      >
+                        Clear all filters
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

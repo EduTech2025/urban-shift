@@ -5,10 +5,12 @@ import { ChevronDown, Filter, Search } from "lucide-react";
 
 interface HeaderControlsProps {
   onMobileFiltersOpen: () => void;
+  filterCount?: number;
 }
 
 export const HeaderControls: React.FC<HeaderControlsProps> = ({
   onMobileFiltersOpen,
+  filterCount = 0,
 }) => {
   return (
     <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 sm:mb-6 gap-4">
@@ -49,10 +51,15 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
         {/* Mobile Filter Button */}
         <button
           onClick={onMobileFiltersOpen}
-          className="lg:hidden bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
+          className="lg:hidden bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors relative"
         >
           <Filter className="w-4 h-4" />
           Filters
+          {filterCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {filterCount}
+            </span>
+          )}
         </button>
       </div>
 

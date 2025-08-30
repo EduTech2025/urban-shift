@@ -44,11 +44,17 @@ const SignupPage = () => {
     }
 
     try {
-      await signup(credentials.name, credentials.email, credentials.password);
-      // Redirect handled by AuthContext
+      // Call updated signup function from AuthContext
+      await signup(
+        credentials.name,
+        credentials.email,
+        credentials.phone,
+        credentials.password
+      );
+      // Redirect handled inside AuthContext
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Signup failed. Please try again."
+        err.response?.data?.detail || "Signup failed. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -217,16 +223,10 @@ const SignupPage = () => {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
+            <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
               Google
             </button>
-            <button
-              type="button"
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
+            <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
               Facebook
             </button>
           </div>

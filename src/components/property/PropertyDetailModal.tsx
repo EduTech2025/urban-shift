@@ -30,7 +30,7 @@ import {
   Car as CarIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { PropertyFilters, PropertyDetailModalProps } from "@/types";
+import { PropertyDetailModalProps } from "@/types";
 import Button from "@/components/ui/Button";
 
 const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({

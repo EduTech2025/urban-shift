@@ -1,31 +1,25 @@
-"use client";
-
-import React from "react";
-import { Filter, X } from "lucide-react";
-
 interface FilterSectionProps {
   children: React.ReactNode;
   onClearFilters: () => void;
+  filterCount?: number;
 }
 
 export const FilterSection: React.FC<FilterSectionProps> = ({
   children,
   onClearFilters,
+  filterCount = 0,
 }) => {
   return (
     <div className="w-80 lg:w-90 bg-white rounded-2xl p-6 h-fit">
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-6 gap-3 sm:gap-0">
-        <button className="bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors">
-          <Filter className="w-4 h-4" />
-          Apply Filter
-        </button>
-
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Filters {filterCount > 0 && `(${filterCount})`}
+        </h2>
         <button
           onClick={onClearFilters}
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
+          className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
         >
           Clear All
-          <X className="w-4 h-4" />
         </button>
       </div>
       {children}
