@@ -99,10 +99,12 @@ export interface User {
   username: string;
   email: string;
   first_name: string;
-  last_name?: string;
+  last_name: string;
   phone_number?: string;
-  // Add other fields if your Django user model has more
+  is_staff: boolean;
+  is_superuser: boolean;
 }
+
 
 // Login credentials
 export interface LoginCredentials {

@@ -1,11 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, MessageCircle, User, Menu, X, LogOut, Heart } from "lucide-react";
+import {
+  Search,
+  MessageCircle,
+  User,
+  Menu,
+  X,
+  LogOut,
+  Heart,
+  Plus,
+  Home, 
+} from "lucide-react";
 import Navigation from "./Navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ActionButtonType, NavigationItem, ActionButtonProps } from "@/types";
+import type {
+  ActionButtonType,
+  NavigationItem,
+  ActionButtonProps,
+} from "@/types";
 import Image from "next/image";
 // import type { NavigationItem } from "@/types";
 
@@ -55,7 +69,7 @@ const NavigationWithSearch = ({
       className={`${
         isMobile
           ? "flex flex-col space-y-4 w-full"
-          : "hidden lg:flex items-center bg-white rounded-full shadow-sm border border-gray-200 px-6 lg:w-[50%] py-2"
+          : "hidden lg:flex items-center bg-white rounded-full shadow-sm border border-gray-200 px-6 lg:w-[40%] py-2"
       }`}
     >
       {/* Navigation */}
@@ -127,6 +141,11 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
 
+  const userData = user?.user || user;
+
+  console.log("user in header:", userData?.is_staff);
+  
+
   const handleLogout = () => {
     logout();
     router.push("/");
@@ -153,6 +172,16 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
           label: "My Account",
           href: "/account",
         },
+        // 👇 Add Property (only if staff)
+        ...(userData?.is_staff
+          ? [
+              {
+                icon: <Home className="h-4 w-4" />,
+                label: "Add Property",
+                href: "/add-property",
+              },
+            ]
+          : []),
         {
           icon: <LogOut className="h-4 w-4" />,
           label: "Log Out",
@@ -188,7 +217,6 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
     </div>
   );
 };
-
 
 const MobileMenu = ({
   isOpen,

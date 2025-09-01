@@ -41,7 +41,6 @@ const PropertyFilterSection = () => {
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  
 
   // Options matching your Django model choices
   const propertyTypes = [
@@ -63,9 +62,7 @@ const PropertyFilterSection = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [propertiesData] = await Promise.all([
-          propertyService.getAll(),
-        ]);
+        const [propertiesData] = await Promise.all([propertyService.getAll()]);
         setAllProperties(propertiesData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -76,6 +73,10 @@ const PropertyFilterSection = () => {
 
     fetchData();
   }, []);
+
+  const handleDeleteProperty = (propertyId: number) => {
+    setAllProperties((prev) => prev.filter((p) => p.property_id !== propertyId));
+  };
 
   // Convert price to a common unit (lakhs) for comparison
   const convertToLakhs = (price: number, unit: string): number => {
@@ -462,6 +463,7 @@ const PropertyFilterSection = () => {
                       <PropertyCard
                         key={property.property_id}
                         property={property}
+                        onDelete={handleDeleteProperty}
                       />
                     ))
                   ) : (

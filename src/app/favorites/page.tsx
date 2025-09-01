@@ -29,6 +29,11 @@ const FavoritesPage = () => {
     fetchFavorites();
   }, []);
 
+  const handleDeleteFavorite = (propertyId: number) => {
+    // Remove from favorites state immediately
+    setFavorites((prev) => prev.filter((p) => p.property_id !== propertyId));
+  };
+
   // Loading State
   if (loading) {
     return (
@@ -174,7 +179,11 @@ const FavoritesPage = () => {
         {/* Properties Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {favorites.map((property) => (
-            <PropertyCard key={property.property_id} property={property} />
+            <PropertyCard
+              key={property.property_id}
+              property={property}
+              onDelete={handleDeleteFavorite}
+            />
           ))}
         </div>
 
