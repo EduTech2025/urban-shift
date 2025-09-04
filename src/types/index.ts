@@ -22,7 +22,7 @@ export interface Property {
   size_unit?: string;
   bhk_rk: "1BHK" | "2BHK" | "3BHK" | "4BHK" | "5BHK" | "RK";
   has_parking_space: boolean;
-  furnishing?: "Furnished" | "Unfurnished" | "Semi-Furnished";
+  furnishing?: "Furnished" | "Unfurnished" | "Semi-furnished";
   availability: "Ready to Move" | "Under Construction";
   is_featured: boolean;
   is_favorite?: boolean;

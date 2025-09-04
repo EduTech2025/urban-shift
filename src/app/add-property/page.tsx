@@ -1,7 +1,9 @@
+// src/app/add-property/page.tsx
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter, useParams } from "next/navigation";
 import { Property } from "@/types";
 import { propertyService } from "@/lib/services/propertyService";
 import { toast } from "sonner";
@@ -10,13 +12,17 @@ import {
   MapPin,
   Home,
   DollarSign,
-  Image,
+  Image as LucidImage,
   Check,
   X,
 } from "lucide-react";
 
 const AddPropertyPage: React.FC = () => {
   const router = useRouter();
+  const params = useParams();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [propertyId, setPropertyId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState<Partial<Property>>({
     title: "",
@@ -30,7 +36,7 @@ const AddPropertyPage: React.FC = () => {
     price_unit: "Lakhs",
     propertyType: "Residential Apartment",
     bhk_rk: "2BHK",
-    furnishing: "Semi-Furnished",
+    furnishing: "Semi-furnished",
     availability: "Ready to Move",
     size: 0,
     size_unit: "sqft",
@@ -42,6 +48,41 @@ const AddPropertyPage: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [showImageFolder, setShowImageFolder] = useState("");
   const [extractingImages, setExtractingImages] = useState(false);
+
+  const [hasError, setHasError] = useState(false);
+
+  // Check if we're in edit mode
+  useEffect(() => {
+    if (params.id) {
+      const id = Array.isArray(params.id) ? params.id[0] : params.id;
+      setIsEditMode(true);
+      setPropertyId(id);
+      fetchPropertyData(Number(id));
+    } else {
+      setLoading(false);
+    }
+  }, [params]);
+
+  if (hasError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+        <span className="text-gray-500">No image available</span>
+      </div>
+    );
+  }
+
+  const fetchPropertyData = async (id: number) => {
+    try {
+      setLoading(true);
+      const propertyData = await propertyService.getById(id);
+      setFormData(propertyData);
+    } catch (error) {
+      console.error("Error fetching property data:", error);
+      toast.error("Failed to load property data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper function to convert Google Drive URLs
   const convertGoogleDriveUrl = (url: string): string => {
@@ -106,11 +147,11 @@ const AddPropertyPage: React.FC = () => {
         // For each file ID, we need to check if it's an image
         // We'll convert all found files to direct URLs and let the browser handle invalid ones
         const imageUrls = fileIds.map(
-          (id) => `https://drive.google.com/uc?export=view&id=${id}`
+          (id: string) => `https://drive.google.com/uc?export=view&id=${id}`
         );
 
         // Filter out duplicates
-        const uniqueUrls = [...new Set(imageUrls)];
+        const uniqueUrls = [...new Set(imageUrls)] as string[];
 
         if (uniqueUrls.length === 0) {
           throw new Error("No image files found in folder");
@@ -119,7 +160,7 @@ const AddPropertyPage: React.FC = () => {
         return uniqueUrls;
       } catch (proxyError) {
         // Fallback: Try alternative method using the embed view
-        console.log("Primary method failed, trying alternative...");
+        console.error("Proxy method failed, trying embed view...", proxyError);
 
         const embedUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
         const embedProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
@@ -143,11 +184,16 @@ const AddPropertyPage: React.FC = () => {
           );
         }
 
-        const fileIds = fileMatches
-          .map((match: string) => {
+        // Define interface for file ID extraction
+        interface FileIdExtractor {
+          (match: string): string;
+        }
+
+        const fileIds: string[] = fileMatches
+          .map(((match: string) => {
             return match.replace(/"/g, "");
-          })
-          .filter((id) => id.length >= 25); // Filter valid Drive file IDs
+          }) as FileIdExtractor)
+          .filter((id: string) => id.length >= 25); // Filter valid Drive file IDs
 
         // Remove duplicates and convert to image URLs
         const uniqueFileIds = [...new Set(fileIds)];
@@ -159,7 +205,11 @@ const AddPropertyPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error extracting images:", error);
-      throw new Error(`Failed to extract images: ${error.message}`);
+      let errorMessage = "Unknown error";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      throw new Error(`Failed to extract images: ${errorMessage}`);
     }
   };
 
@@ -168,8 +218,10 @@ const AddPropertyPage: React.FC = () => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+
     if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
       setFormData({ ...formData, [name]: checked });
     } else if (type === "number") {
       setFormData({ ...formData, [name]: Number(value) });
@@ -227,6 +279,7 @@ const AddPropertyPage: React.FC = () => {
       setShowImageFolder("");
       toast.success(`Added ${extractedImages.length} images from folder!`);
     } catch (error) {
+      console.error("Error extracting images from folder:", error);
       toast.error("Failed to extract images from folder");
     } finally {
       setExtractingImages(false);
@@ -239,17 +292,74 @@ const AddPropertyPage: React.FC = () => {
     setFormData({ ...formData, show_image: updatedImages });
   };
 
+  const validateForm = (data: typeof formData) => {
+    if (!data.title?.trim()) return "Title is required";
+    if (!data.propertyType) return "Property type is required";
+    if (!data.bhk_rk) return "BHK / RK selection is required";
+    if (!data.availability) return "Availability is required";
+    if (!data.furnishing) return "Furnishing type is required";
+
+    if (data.price != undefined && data.price < 0)
+      return "Price must be greater than 0";
+    if (!data.price_unit) return "Price unit is required";
+
+    if (!data.main_image) return "Main image URL is required";
+
+    // location_map is optional, but if provided, validate it
+    if (data.location_map?.trim()) {
+      try {
+        new URL(data.location_map);
+      } catch {
+        return "Location map must be a valid URL";
+      }
+    }
+
+    return null; // ✅ all good
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errorMsg = validateForm(formData);
+    if (errorMsg) {
+      toast.error(errorMsg);
+      return; // stop submission
+    }
+
     try {
-      await propertyService.create(formData);
-      toast.success("Property added successfully!");
+      if (isEditMode && propertyId) {
+        await propertyService.updateProperty(Number(propertyId), formData);
+        toast.success("Property updated successfully!");
+      } else {
+        console.log(formData);
+
+        await propertyService.createProperty(formData);
+
+        toast.success("Property added successfully!");
+      }
       router.push("/");
     } catch (error) {
-      console.error("Error adding property:", error);
-      toast.error("Failed to add property");
+      console.error("Error saving property:", error);
+      toast.error(
+        <div>
+          Failed to {isEditMode ? "update" : "add"} property
+          <br />
+          Ensure all required fields (*) are filled correctly.
+        </div>
+      );
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#faf3ee] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading property data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#faf3ee] py-8 px-4">
@@ -261,11 +371,13 @@ const AddPropertyPage: React.FC = () => {
               <Home className="w-6 h-6 text-orange-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">
-              Add New Property
+              {isEditMode ? "Edit Property" : "Add New Property"}
             </h1>
           </div>
           <p className="text-gray-600">
-            Fill in the details below to list your property
+            {isEditMode
+              ? "Update the details of your property"
+              : "Fill in the details below to list your property"}
           </p>
         </div>
 
@@ -354,6 +466,7 @@ const AddPropertyPage: React.FC = () => {
                   type="url"
                   name="location_map"
                   value={formData.location_map}
+                  pattern="https?://.+"
                   onChange={handleChange}
                   placeholder="Google Maps link (optional)"
                   className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
@@ -365,7 +478,7 @@ const AddPropertyPage: React.FC = () => {
           {/* Images */}
           <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <Image className="w-5 h-5 text-orange-600" />
+              <LucidImage className="w-5 h-5 text-orange-600" />
               Property Images
             </h2>
 
@@ -456,19 +569,15 @@ const AddPropertyPage: React.FC = () => {
                           className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100"
                         >
                           <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img
+                            <Image
                               src={imageUrl}
                               alt={`Property image ${index + 1}`}
+                              width={500} // ✅ required in Next.js
+                              height={300} // ✅ required in Next.js
                               className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = "none";
-                                target.nextElementSibling!.classList.remove(
-                                  "hidden"
-                                );
-                              }}
+                              onError={() => setHasError(true)} // ✅ handle fallback
                             />
-                            <Image className="w-6 h-6 text-gray-400 hidden" />
+                            <LucidImage className="w-6 h-6 text-gray-400 hidden" />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm text-gray-700 truncate">
@@ -763,7 +872,7 @@ const AddPropertyPage: React.FC = () => {
                 onClick={handleSubmit}
                 className="px-8 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                Add Property
+                {isEditMode ? "Update Property" : "Add Property"}
               </button>
             </div>
           </div>

@@ -13,7 +13,6 @@ export default function AccountPage() {
     if (!user) {
       router.push("/login");
     }
-    console.log("User data:", user);
   }, [user, router]);
 
   if (!user) {
@@ -24,12 +23,10 @@ export default function AccountPage() {
     );
   }
 
-  const userData = user?.user || user;
-
   const getInitials = (firstName?: string, lastName?: string) => {
     const first = firstName?.charAt(0)?.toUpperCase() || "";
     const last = lastName?.charAt(0)?.toUpperCase() || "";
-    return first + last || userData.username?.charAt(0)?.toUpperCase() || "U";
+    return first + last || user.username?.charAt(0)?.toUpperCase() || "U";
   };
 
   return (
@@ -50,7 +47,7 @@ export default function AccountPage() {
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <span className="text-lg font-semibold text-gray-700">
-                {getInitials(userData.first_name, userData.last_name)}
+                {getInitials(user.first_name, user.last_name)}
               </span>
             </div>
             <h1 className="text-lg font-semibold text-gray-900">
@@ -70,9 +67,9 @@ export default function AccountPage() {
                   Name
                 </p>
                 <p className="text-sm font-medium text-gray-900">
-                  {userData.first_name && userData.last_name
-                    ? `${userData.first_name} ${userData.last_name}`
-                    : userData.first_name || userData.username}
+                  {user.first_name && user.last_name
+                    ? `${user.first_name} ${user.last_name}`
+                    : user.first_name || user.username}
                 </p>
               </div>
             </div>
@@ -87,7 +84,7 @@ export default function AccountPage() {
                   Username
                 </p>
                 <p className="text-sm font-medium text-gray-900">
-                  {userData.username}
+                  {user.username}
                 </p>
               </div>
             </div>
@@ -102,13 +99,13 @@ export default function AccountPage() {
                   Email
                 </p>
                 <p className="text-sm font-medium text-gray-900">
-                  {userData.email}
+                  {user.email}
                 </p>
               </div>
             </div>
 
             {/* Phone Number */}
-            {userData.phone_number && (
+            {user.phone_number && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                 <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Phone className="h-4 w-4 text-orange-600" />
@@ -118,7 +115,7 @@ export default function AccountPage() {
                     Phone
                   </p>
                   <p className="text-sm font-medium text-gray-900">
-                    {userData.phone_number}
+                    {user.phone_number}
                   </p>
                 </div>
               </div>
@@ -134,7 +131,7 @@ export default function AccountPage() {
                   User ID
                 </p>
                 <p className="text-sm font-medium text-gray-900">
-                  {userData.id}
+                  {user.id}
                 </p>
               </div>
             </div>

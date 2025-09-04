@@ -15,7 +15,7 @@ export const favoriteService = {
   // Get all favorite properties for the logged-in user
   getFavorites: async (): Promise<Property[]> => {
     const response = await api.get(
-      "http://localhost:8000/api/properties/favorites/",
+      `/properties/favorites/`,
       { headers: getAuthHeaders() }
     );
     return response.data.favorites;
@@ -24,7 +24,7 @@ export const favoriteService = {
   // Add a property to favorites
   addFavorite: async (propertyId: number): Promise<ToggleFavoriteResponse> => {
     const response = await api.post(
-      `http://localhost:8000/api/properties/favorites/add/${propertyId}/`,
+      `/properties/favorites/add/${propertyId}/`,
       {},
       { headers: getAuthHeaders() }
     );
@@ -36,7 +36,7 @@ export const favoriteService = {
     propertyId: number
   ): Promise<ToggleFavoriteResponse> => {
     const response = await api.post(
-      `http://localhost:8000/api/properties/favorites/remove/${propertyId}/`,
+      `/properties/favorites/remove/${propertyId}/`,
       {},
       { headers: getAuthHeaders() }
     );

@@ -7,10 +7,11 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import router
+import { useRouter } from "next/navigation";
 import { User } from "@/types";
 import { authService } from "@/lib/services/authService";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 interface AuthContextType {
   user: User | null;
@@ -38,22 +39,18 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken");
-        if (accessToken) {
-          const currentUser = await authService.getCurrentUser();
-          setUser(currentUser);
-        }
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
       } catch (err) {
         console.error("Auth check failed:", err);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -68,13 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
       });
-      setUser(user); // Fix here
+      setUser(user);
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
       toast.success("Login successful!");
-      router.push("/"); // ✅ Redirect to main page
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed.");
+      router.push("/");
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      toast.error(error.response?.data?.message || "Login failed.");
       throw err;
     }
   };
@@ -96,9 +94,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
       toast.success("Account created successfully!");
-      router.push("/"); // ✅ Redirect to main page
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Signup failed.");
+      router.push("/");
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      toast.error(error.response?.data?.message || "Signup failed.");
       throw err;
     }
   };
@@ -106,9 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     authService.logout();
     setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    router.push("/"); // ✅ Redirect to main page
+    router.push("/");
     toast.success("Logged out successfully!");
   };
 

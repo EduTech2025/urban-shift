@@ -8,6 +8,8 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
 
+import { AxiosError } from "axios";
+
 const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,9 +54,10 @@ const SignupPage = () => {
         credentials.password
       );
       // Redirect handled inside AuthContext
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ detail?: string; message?: string }>;
       setError(
-        err.response?.data?.detail || "Signup failed. Please try again."
+        error.response?.data?.detail || "Signup failed. Please try again."
       );
     } finally {
       setIsLoading(false);

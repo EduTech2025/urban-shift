@@ -1,43 +1,48 @@
+// src/app/featured-properties/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { favoriteService } from "@/lib/services/favoriteService";
 import PropertyCard from "@/components/property/PropertyCard";
 import { Property } from "@/types";
+import { propertyService } from "@/lib/services/propertyService";
 import {
   ArrowLeft,
-  Heart,
   Search,
+  Star,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
 
-const FavoritesPage = () => {
+const FeaturedPropertiesPage = () => {
   const router = useRouter();
-  const [favorites, setFavorites] = useState<Property[]>([]);
+  const [featuredProperties, setFeaturedProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Responsive pagination state
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12); // Default to 12
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    const fetchFeaturedProperties = async () => {
       try {
         setError(null);
-        const favs = await favoriteService.getFavorites();
-        setFavorites(favs);
+        const allProperties = await propertyService.getAll();
+        // Filter only featured properties
+        const featured = allProperties.filter(
+          (property) => property.is_featured === true
+        );
+        setFeaturedProperties(featured);
       } catch (error) {
-        console.error("Failed to fetch favorites:", error);
-        setError("Failed to load your favorite properties. Please try again.");
+        console.error("Failed to fetch featured properties:", error);
+        setError("Failed to load featured properties. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-    fetchFavorites();
+    fetchFeaturedProperties();
   }, []);
 
   // Update items per page based on screen size
@@ -61,16 +66,17 @@ const FavoritesPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleDeleteFavorite = (propertyId: number) => {
-    // Remove from favorites state immediately
-    setFavorites((prev) => prev.filter((p) => p.property_id !== propertyId));
+  const handleDeleteProperty = (propertyId: number) => {
+    setFeaturedProperties((prev) =>
+      prev.filter((p) => p.property_id !== propertyId)
+    );
   };
 
   // Pagination logic
-  const totalPages = Math.ceil(favorites.length / itemsPerPage);
+  const totalPages = Math.ceil(featuredProperties.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentFavorites = favorites.slice(startIndex, endIndex);
+  const currentProperties = featuredProperties.slice(startIndex, endIndex);
 
   // Reset to first page when items per page changes
   useEffect(() => {
@@ -141,7 +147,7 @@ const FavoritesPage = () => {
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">
-              Saved Properties
+              Featured Properties
             </h1>
           </div>
 
@@ -179,13 +185,13 @@ const FavoritesPage = () => {
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">
-              Saved Properties
+              Featured Properties
             </h1>
           </div>
 
           <div className="bg-white rounded-xl p-8 shadow-sm text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-8 w-8 text-red-500" />
+              <Star className="h-8 w-8 text-red-500" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Something went wrong
@@ -204,7 +210,7 @@ const FavoritesPage = () => {
   }
 
   // Empty State
-  if (favorites.length === 0) {
+  if (featuredProperties.length === 0) {
     return (
       <div className="min-h-screen bg-[#faf3ee]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -216,28 +222,27 @@ const FavoritesPage = () => {
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">
-              Saved Properties
+              Featured Properties
             </h1>
           </div>
 
           <div className="bg-white rounded-xl p-12 shadow-sm text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="h-10 w-10 text-gray-400" />
+              <Star className="h-10 w-10 text-gray-400" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">
-              No saved properties yet
+              No featured properties available
             </h2>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Start exploring and save properties you&apos;re interested in.
-              They&apos;ll appear here for easy access.
+              Check back later to see our premium selection of featured
+              properties.
             </p>
-
             <button
               onClick={() => router.push("/")}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               <Search className="h-4 w-4" />
-              Explore Properties
+              Explore All Properties
             </button>
           </div>
         </div>
@@ -260,11 +265,13 @@ const FavoritesPage = () => {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Favourite Properties
+                Featured Properties
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                {favorites.length}{" "}
-                {favorites.length === 1 ? "property" : "properties"} saved
+                {featuredProperties.length}{" "}
+                {featuredProperties.length === 1
+                  ? "premium property"
+                  : "premium properties"}
               </p>
             </div>
           </div>
@@ -272,17 +279,17 @@ const FavoritesPage = () => {
 
         {/* Properties Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {currentFavorites.map((property) => (
+          {currentProperties.map((property) => (
             <PropertyCard
               key={property.property_id}
               property={property}
-              onDelete={handleDeleteFavorite}
+              onDelete={handleDeleteProperty}
             />
           ))}
         </div>
 
         {/* Pagination */}
-        {favorites.length > itemsPerPage && (
+        {featuredProperties.length > itemsPerPage && (
           <div className="flex justify-center mt-8 sm:mt-12">
             <nav className="flex items-center gap-1 sm:gap-2">
               {/* Previous Button */}
@@ -332,14 +339,15 @@ const FavoritesPage = () => {
 
         {/* Results info */}
         <div className="text-center mt-4 text-sm text-gray-600">
-          Showing {startIndex + 1} to {Math.min(endIndex, favorites.length)} of{" "}
-          {favorites.length} properties
+          Showing {startIndex + 1} to{" "}
+          {Math.min(endIndex, featuredProperties.length)} of{" "}
+          {featuredProperties.length} properties
         </div>
 
         {/* Footer Message */}
         <div className="mt-12 text-center">
           <p className="text-sm text-gray-500">
-            Keep exploring to find more properties you love
+            Discover our curated selection of premium properties
           </p>
         </div>
       </div>
@@ -347,4 +355,4 @@ const FavoritesPage = () => {
   );
 };
 
-export default FavoritesPage;
+export default FeaturedPropertiesPage;

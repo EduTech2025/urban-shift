@@ -9,7 +9,7 @@ const getAuthHeaders = () => {
 export const propertyService = {
   // Fetch all properties
   getAll: async (): Promise<Property[]> => {
-    const response = await api.get("http://localhost:8000/api/properties/", {
+    const response = await api.get(`/properties/`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -18,7 +18,7 @@ export const propertyService = {
   // Fetch a single property by ID
   getById: async (id: number): Promise<Property> => {
     const response = await api.get(
-      `http://localhost:8000/api/properties/${id}/`,
+      `/properties/${id}/`,
       {
         headers: getAuthHeaders(),
       }
@@ -27,9 +27,9 @@ export const propertyService = {
   },
 
   // Create a new property
-  create: async (propertyData: Partial<Property>): Promise<Property> => {
+  createProperty: async (propertyData: Partial<Property>): Promise<Property> => {
     const response = await api.post(
-      "http://localhost:8000/api/properties/create/",
+      `/properties/create/`,
       propertyData,
       { headers: getAuthHeaders() }
     );
@@ -37,12 +37,12 @@ export const propertyService = {
   },
 
   // Update an existing property
-  update: async (
+  updateProperty: async (
     id: number,
     propertyData: Partial<Property>
   ): Promise<Property> => {
     const response = await api.put(
-      `http://localhost:8000/api/properties/${id}/update/`,
+      `/properties/${id}/update/`,
       propertyData,
       { headers: getAuthHeaders() }
     );
@@ -50,8 +50,8 @@ export const propertyService = {
   },
 
   // Delete a property
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`http://localhost:8000/api/properties/${id}/delete/`, {
+  deleteProperty: async (id: number): Promise<void> => {
+    await api.delete(`/properties/${id}/delete/`, {
       headers: getAuthHeaders(),
     });
   },

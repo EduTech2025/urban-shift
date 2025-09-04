@@ -9,6 +9,8 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginCredentials } from "@/types";
 
+import { AxiosError } from "axios";
+
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +24,7 @@ const LoginPage = () => {
   const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, checked } = e.target;
     if (name === "rememberMe") {
       setRememberMe(checked);
     } else {
@@ -41,10 +43,11 @@ const LoginPage = () => {
     try {
       await login(credentials.email, credentials.password);
       // Redirect handled inside AuthContext
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ detail?: string; message?: string }>;
       setError(
-        err.response?.data?.detail || // DRF SimpleJWT sends "detail" on error
-          err.response?.data?.message ||
+        error.response?.data?.detail || // DRF SimpleJWT sends "detail" on error
+          error.response?.data?.message ||
           "Login failed. Please try again."
       );
     } finally {

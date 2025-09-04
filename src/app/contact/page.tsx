@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Send, User, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, Send, User } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
@@ -36,6 +36,7 @@ const ContactPage = () => {
       setSubmitStatus("success");
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (error) {
+      console.error("Error submitting contact form:", error);
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
@@ -179,7 +180,6 @@ const ContactPage = () => {
                 onChange={handleChange}
                 required
                 rows={5}
-                icon={MessageSquare}
                 placeholder="Tell us how we can help you..."
               />
 

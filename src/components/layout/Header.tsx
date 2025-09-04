@@ -9,7 +9,6 @@ import {
   X,
   LogOut,
   Heart,
-  Plus,
   Home, 
 } from "lucide-react";
 import Navigation from "./Navigation";
@@ -140,10 +139,6 @@ const ActionButton = ({
 const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
-
-  const userData = user?.user || user;
-
-  console.log("user in header:", userData?.is_staff);
   
 
   const handleLogout = () => {
@@ -173,7 +168,7 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
           href: "/account",
         },
         // 👇 Add Property (only if staff)
-        ...(userData?.is_staff
+        ...(user?.is_staff
           ? [
               {
                 icon: <Home className="h-4 w-4" />,

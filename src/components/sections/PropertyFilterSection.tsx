@@ -10,6 +10,7 @@ import { LocationFilter } from "@/components/filters/LocationFilter";
 import { CheckboxFilter } from "@/components/filters/CheckboxFilter";
 import { MobileFiltersModal } from "@/components/filters/MobileFiltersModal";
 import { HeaderControls } from "@/components/filters/HeaderControls";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
 interface Filters {
   price: number;
@@ -41,6 +42,10 @@ const PropertyFilterSection = () => {
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12); // Default to 12
 
   // Options matching your Django model choices
   const propertyTypes = [
@@ -74,8 +79,36 @@ const PropertyFilterSection = () => {
     fetchData();
   }, []);
 
+  // Update items per page based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        // sm breakpoint
+        setItemsPerPage(4);
+      } else {
+        setItemsPerPage(12);
+      }
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Clean up
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFilters]);
+
   const handleDeleteProperty = (propertyId: number) => {
-    setAllProperties((prev) => prev.filter((p) => p.property_id !== propertyId));
+    setAllProperties((prev) =>
+      prev.filter((p) => p.property_id !== propertyId)
+    );
   };
 
   // Convert price to a common unit (lakhs) for comparison
@@ -171,6 +204,63 @@ const PropertyFilterSection = () => {
       return true;
     });
   }, [allProperties, selectedFilters]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProperties = filteredProperties.slice(startIndex, endIndex);
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = window.innerWidth < 640 ? 3 : 5; // Fewer pages on mobile
+
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total pages is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      // Calculate start and end of visible pages
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      // Adjust if we're near the beginning
+      if (currentPage <= 2) {
+        endPage = 3;
+      }
+
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 1) {
+        startPage = totalPages - 2;
+      }
+
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pages.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
 
   // Filter handlers
   const handlePriceChange = (price: number) => {
@@ -458,8 +548,8 @@ const PropertyFilterSection = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property) => (
+                  {currentProperties.length > 0 ? (
+                    currentProperties.map((property) => (
                       <PropertyCard
                         key={property.property_id}
                         property={property}
@@ -483,6 +573,64 @@ const PropertyFilterSection = () => {
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* Pagination */}
+                {filteredProperties.length > itemsPerPage && (
+                  <div className="flex justify-center mt-8 sm:mt-12">
+                    <nav className="flex items-center gap-1 sm:gap-2">
+                      {/* Previous Button */}
+                      <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {/* Page Numbers */}
+                      {getPageNumbers().map((page, index) => (
+                        <button
+                          key={index}
+                          onClick={() =>
+                            typeof page === "number"
+                              ? setCurrentPage(page)
+                              : null
+                          }
+                          disabled={page === "..."}
+                          className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border text-sm font-medium transition-colors ${
+                            currentPage === page
+                              ? "border-indigo-600 bg-indigo-600 text-white"
+                              : page === "..."
+                              ? "border-transparent bg-transparent text-gray-500 cursor-default"
+                              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {page === "..." ? (
+                            <MoreHorizontal className="w-4 h-4" />
+                          ) : (
+                            page
+                          )}
+                        </button>
+                      ))}
+
+                      {/* Next Button */}
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </nav>
+                  </div>
+                )}
+
+                {/* Results info */}
+                <div className="text-center mt-4 text-sm text-gray-600">
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredProperties.length)} of{" "}
+                  {filteredProperties.length} properties
                 </div>
               </>
             )}

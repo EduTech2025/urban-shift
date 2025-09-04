@@ -2,125 +2,29 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { Card, CardHeader, CardContent } from "@/components/ui/Card";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { Property } from "@/types";
 import { propertyService } from "@/lib/services/propertyService";
-import { ChevronLeft, ChevronRight, Star, MapPin, Square } from "lucide-react";
-
-interface PropertyCardProps {
-  property: Property;
-  onPropertyClick: (property: Property) => void;
-}
-
-const PropertyCard = ({ property, onPropertyClick }: PropertyCardProps) => {
-  const handleCardClick = () => {
-    onPropertyClick(property);
-  };
-
-  const formatPrice = () => {
-    return `₹${property.price.toLocaleString()} ${property.price_unit}`;
-  };
-
-  return (
-    <Card
-      hover
-      onClick={handleCardClick}
-      className="group overflow-hidden h-full transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-2 hover:scale-105 w-full"
-    >
-      <CardHeader className="h-40 sm:h-44 md:h-48 lg:h-52 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/40 z-10" />
-        <Image
-          src={property.main_image}
-          alt={property.title}
-          fill
-          className="object-cover transform group-hover:scale-110 transition-transform duration-500"
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-
-        {/* Featured Badge */}
-        {property.is_featured && (
-          <div className="absolute top-3 left-3 z-30 bg-amber-400/90 backdrop-blur-sm text-amber-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
-            <Star className="w-3 h-3 mr-1 fill-current" />
-            Featured
-          </div>
-        )}
-
-        {/* Price Badge */}
-        <div className="absolute bottom-3 right-3 z-30 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold text-gray-900">
-          {formatPrice()}
-        </div>
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-20" />
-      </CardHeader>
-      <CardContent className="pt-3 sm:pt-4 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-5 lg:pb-6 flex-1 flex flex-col">
-        <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight line-clamp-2">
-          {property.title}
-        </h3>
-
-        {/* Location */}
-        <div className="flex items-center text-gray-500 mb-2 text-xs sm:text-sm">
-          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-          <span className="truncate">{property.location}</span>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
-          <div className="flex items-center">
-            <Square className="w-3 h-3 mr-1" />
-            {property.bhk_rk}
-          </div>
-          <div className="flex items-center">
-            <Square className="w-3 h-3 mr-1" />
-            {property.size} {property.size_unit}
-          </div>
-        </div>
-
-        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed flex-1 line-clamp-2 overflow-hidden">
-          {property.description}
-        </p>
-      </CardContent>
-    </Card>
-  );
-};
+import PropertyCard from "@/components/property/PropertyCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Button from "@/components/ui/Button";
 
 const PropertyGrid = () => {
-  const [properties, setProperties] = React.useState<Property[]>([]);
+  const router = useRouter();
   const [featuredProperties, setFeaturedProperties] = React.useState<
     Property[]
   >([]);
-  const [selectedProperty, setSelectedProperty] =
-    React.useState<Property | null>(null);
-  const [savedProperties, setSavedProperties] = React.useState<Set<number>>(
-    new Set()
-  );
   const controls = useAnimation();
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobileHovered, setIsMobileHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll animation
-  useEffect(() => {
-    if (!isHovered && featuredProperties.length > 4) {
-      controls.start({
-        x: [0, -(featuredProperties.length - 4) * (25 + 1.5)], // Move by card width + gap
-        transition: {
-          duration: featuredProperties.length * 3, // Slower for more properties
-          ease: "linear",
-          repeat: Infinity,
-          repeatType: "reverse", // Go back and forth
-        },
-      });
-    } else {
-      controls.stop();
-    }
-  }, [controls, isHovered, featuredProperties]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch properties and filter featured ones
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         const allProperties = await propertyService.getAll();
-        setProperties(allProperties);
 
         // Filter only featured properties
         const featured = allProperties.filter(
@@ -135,17 +39,48 @@ const PropertyGrid = () => {
     fetchProperties();
   }, []);
 
-  // Handle property selection
-  const handlePropertyClick = (property: Property) => {
-    setSelectedProperty(property);
-  };
+  // Auto-scroll animation for desktop - FASTER SPEED
+  useEffect(() => {
+    if (!isHovered && featuredProperties.length > 4) {
+      const cardWidth = 25; // 25% of container
+      const gap = 1.5; // 1.5rem gap
+      const travelDistance =
+        featuredProperties.length * (cardWidth + gap) - 100;
 
+      controls.start({
+        x: [0, -travelDistance],
+        transition: {
+          duration: featuredProperties.length * 0.6, // Much faster - reduced from 1.2 to 0.6
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "loop",
+          repeatDelay: 0.2, // Reduced delay
+        },
+      });
+    } else {
+      controls.stop();
+    }
+  }, [controls, isHovered, featuredProperties]);
 
-  // Manual navigation functions
+  // Auto-scroll animation for mobile
+  useEffect(() => {
+    if (!isMobileHovered && featuredProperties.length > 1) {
+      const autoScrollInterval = setInterval(() => {
+        setCurrentIndex((prevIndex) => {
+          const nextIndex = prevIndex + 1;
+          return nextIndex >= featuredProperties.length ? 0 : nextIndex;
+        });
+      }, 3000); // Auto-scroll every 3 seconds
+
+      return () => clearInterval(autoScrollInterval);
+    }
+  }, [isMobileHovered, featuredProperties.length]);
+
+  // Manual navigation functions for desktop
   const scrollLeft = () => {
     if (containerRef.current) {
       const container = containerRef.current;
-      const scrollAmount = container.clientWidth;
+      const scrollAmount = container.clientWidth * 0.8;
       container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
     }
   };
@@ -153,11 +88,32 @@ const PropertyGrid = () => {
   const scrollRight = () => {
     if (containerRef.current) {
       const container = containerRef.current;
-      const scrollAmount = container.clientWidth;
+      const scrollAmount = container.clientWidth * 0.8;
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
+  // Mobile navigation
+  const goToNext = () => {
+    if (currentIndex < featuredProperties.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(0); // Loop back to first
+    }
+  };
+
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else {
+      setCurrentIndex(featuredProperties.length - 1); // Loop to last
+    }
+  };
+
+  // Handle view all button click
+  const handleViewAll = () => {
+    router.push("/featured-properties");
+  };
 
   // Don't render if no featured properties
   if (featuredProperties.length === 0) {
@@ -190,22 +146,24 @@ const PropertyGrid = () => {
         </div>
 
         {/* Navigation arrows for larger screens */}
-        <div className="hidden sm:flex absolute top-90 left-10 right-10 -translate-y-1/2 z-30 justify-between pointer-events-none">
-          <button
-            onClick={scrollLeft}
-            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors ml-4 pointer-events-auto cursor-pointer"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-700" />
-          </button>
-          <button
-            onClick={scrollRight}
-            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors mr-4 pointer-events-auto cursor-pointer"
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="h-5 w-5 text-gray-700" />
-          </button>
-        </div>
+        {featuredProperties.length > 4 && (
+          <div className="hidden sm:flex absolute top-1/2 left-0 right-0 -translate-y-1/2 z-30 justify-between pointer-events-none px-4">
+            <button
+              onClick={scrollLeft}
+              className="bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 hover:shadow-2xl transition-all duration-200 pointer-events-auto cursor-pointer border border-gray-200"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-700" />
+            </button>
+            <button
+              onClick={scrollRight}
+              className="bg-white rounded-full p-3 shadow-xl hover:bg-gray-100 hover:shadow-2xl transition-all duration-200 pointer-events-auto cursor-pointer border border-gray-200"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-700" />
+            </button>
+          </div>
+        )}
 
         {/* Carousel */}
         <div
@@ -214,39 +172,105 @@ const PropertyGrid = () => {
           onMouseLeave={() => setIsHovered(false)}
           ref={containerRef}
         >
-          {/* Desktop: 4 items visible, continuous scroll */}
-          <motion.div className="hidden sm:flex gap-6" animate={controls}>
-            {featuredProperties.map((property, i) => (
+          {/* Desktop: Continuous scroll */}
+          <motion.div className="hidden sm:flex gap-6 py-2" animate={controls}>
+            {featuredProperties.map((property) => (
               <div
                 key={property.property_id}
                 className="min-w-[calc(25%-1.125rem)] max-w-[calc(25%-1.125rem)] flex-shrink-0"
               >
                 <PropertyCard
                   property={property}
-                  onPropertyClick={handlePropertyClick}
                 />
               </div>
             ))}
           </motion.div>
 
-          {/* Mobile: 3 items with middle focus */}
-          <div className="flex sm:hidden gap-4 justify-center overflow-x-auto no-scrollbar px-2 snap-x snap-mandatory">
-            {featuredProperties.map((property, i) => (
+          {/* Mobile: Enhanced carousel with auto-scroll */}
+          <div
+            className="sm:hidden relative overflow-hidden py-4"
+            onTouchStart={() => setIsMobileHovered(true)}
+            onTouchEnd={() => setTimeout(() => setIsMobileHovered(false), 5000)}
+          >
+            {/* Navigation arrows for mobile - Enhanced */}
+            {featuredProperties.length > 1 && (
+              <>
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 border border-gray-200"
+                  aria-label="Previous property"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-700" />
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 border border-gray-200"
+                  aria-label="Next property"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-700" />
+                </button>
+              </>
+            )}
+
+            {/* Mobile carousel container with improved layout */}
+            <div className="relative w-full h-auto">
               <div
-                key={property.property_id}
-                className="snap-center transition-all duration-300 flex-shrink-0 w-[80%] max-w-[300px]"
-                style={{
-                  transform: `scale(${i === 1 ? 1.05 : 0.9})`,
-                  opacity: i === 1 ? 1 : 1,
-                }}
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
               >
-                <PropertyCard
-                  property={property}
-                  onPropertyClick={handlePropertyClick}
-                />
+                {featuredProperties.map((property) => (
+                  <div
+                    key={property.property_id}
+                    className="w-full flex-shrink-0 px-4"
+                  >
+                    <div className="max-w-sm mx-auto">
+                      <PropertyCard
+                        property={property}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Enhanced dots indicator with progress */}
+            {featuredProperties.length > 1 && (
+              <div className="flex justify-center mt-6 space-x-2">
+                {featuredProperties.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentIndex
+                        ? "bg-blue-600 w-8"
+                        : "bg-gray-300 w-2 hover:bg-gray-400"
+                    }`}
+                    aria-label={`Go to property ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Auto-scroll indicator
+            {featuredProperties.length > 1 && !isMobileHovered && (
+              <div className="absolute top-2 right-4 z-20">
+                <div className="bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                  Auto
+                </div>
+              </div>
+            )} */}
           </div>
+        </div>
+
+        {/* View All Button */}
+        <div className="text-center mt-8 sm:mt-10 md:mt-12">
+          <Button
+            className="w-full sm:w-auto px-8 sm:px-12 bg-gray-900 hover:bg-gray-800 text-white py-3 sm:py-4 font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+            onClick={handleViewAll}
+          >
+            View All Featured Properties
+            <ChevronRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </div>
     </section>

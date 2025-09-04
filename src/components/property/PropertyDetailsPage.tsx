@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   ArrowLeft,
   MapPin,
@@ -24,10 +24,7 @@ import {
   Users,
   CheckCircle,
   Clock,
-  Eye,
   X,
-  Bath,
-  Bed,
 } from "lucide-react";
 import Image from "next/image";
 import { Property } from "@/types";
@@ -45,19 +42,12 @@ interface PropertyDetailsPageProps {
 const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
   property,
   onBack,
-  onSaveProperty,
-  isSaved = false,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [isFavorite, setIsFavorite] = useState<boolean>(
     property.is_favorite ?? false
   );
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const allImages = [property.main_image, ...(property.show_image || [])];
   const currentImage = allImages[currentImageIndex];
@@ -107,6 +97,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
         await navigator.clipboard.writeText(window.location.href);
         toast.success("Property link copied to clipboard!");
       } catch (clipboardError) {
+        console.error("Error copying to clipboard:", clipboardError);
         toast.error("Unable to share property");
       }
     }

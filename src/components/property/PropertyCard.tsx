@@ -7,8 +7,9 @@ import { Property } from "@/types";
 import { favoriteService } from "@/lib/services/favoriteService";
 import { propertyService } from "@/lib/services/propertyService";
 import { toast } from "sonner";
-import { MapPin, Car, Square, Heart, Edit, Trash2 } from "lucide-react";
+import { MapPin, Car, Square, Heart, Edit, Trash2, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
 
 interface PropertyCardProps {
   property: Property;
@@ -21,7 +22,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const userData = user?.user || user;
   const [isFavorite, setIsFavorite] = useState<boolean>(
     property.is_favorite ?? false
   );
@@ -47,14 +47,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
     }
   };
 
-  const handleEditProperty = (propertyId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    router.push(`/admin/properties/edit/${propertyId}`); // Navigate to edit page
-  };
-
   const handleDeleteProperty = async (propertyId: number) => {
     try {
-      await propertyService.delete(propertyId);
+      await propertyService.deleteProperty(propertyId);
       toast.success("Property deleted successfully");
       if (onDelete) onDelete(propertyId); // notify parent
     } catch (error) {
@@ -105,23 +100,33 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
+          {/* Featured Badge */}
+          {property.is_featured && (
+            <div className="absolute top-3 left-3 z-30 bg-amber-400/90 backdrop-blur-sm text-amber-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+              <Star className="w-3 h-3 mr-1 fill-current" />
+              Featured
+            </div>
+          )}
+
           {/* Favorite Button */}
-          <button
-            className="absolute top-3 right-3 z-30 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all hover:scale-110"
-            onClick={(e) => handleSaveProperty(property.property_id, e)}
-          >
-            <Heart
-              className={`w-5 h-5 transition-colors duration-200 ${
-                isFavorite ? "text-red-500" : "text-gray-400"
-              }`}
-              fill={isFavorite ? "red" : "none"}
-            />
-          </button>
+          {user && (
+            <button
+              className="absolute top-3 right-3 z-30 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all hover:scale-110"
+              onClick={(e) => handleSaveProperty(property.property_id, e)}
+            >
+              <Heart
+                className={`w-5 h-5 transition-colors duration-200 ${
+                  isFavorite ? "text-red-500" : "text-gray-400"
+                }`}
+                fill={isFavorite ? "red" : "none"}
+              />
+            </button>
+          )}
 
           {/* Admin Buttons: Edit & Delete */}
-          {userData?.is_staff && (
+          {user?.is_staff && (
             <div className="absolute bottom-3 right-3 flex gap-2 z-30">
-              {/* <button
+              <button
                 className="bg-blue-500 text-white p-1 rounded hover:bg-blue-600"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -129,7 +134,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
                 }}
               >
                 <Edit className="w-4 h-4" />
-              </button> */}
+              </button>
               <button
                 className="bg-red-500 text-white p-1 rounded hover:bg-red-600"
                 onClick={(e) => {
@@ -142,19 +147,27 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
             </div>
           )}
 
-          {/* Property Type Badge */}
-          <div className="absolute top-3 left-3 z-30">
+          {/* Property Type Badge
+          <div
+            className={`absolute ${
+              property.is_featured ? "top-11" : "top-3"
+            } left-3 z-30`}
+          >
             <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">
               {property.propertyType}
             </span>
-          </div>
+          </div> */}
 
-          {/* Status Badge */}
-          <div className="absolute top-3 left-3 z-30 transform translate-y-7">
+          {/* Status Badge
+          <div
+            className={`absolute ${
+              property.is_featured ? "top-11" : "top-3"
+            } left-3 z-30 transform translate-y-7`}
+          >
             <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
               {property.availability}
             </span>
-          </div>
+          </div> */}
         </div>
 
         <div className="p-4 sm:p-5 lg:p-6">
@@ -191,7 +204,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-blue-500 text-xs sm:text-sm font-medium hover:text-blue-600 transition-colors flex items-center cursor-pointer group-hover:translate-x-1 transition-transform">
+            <span className="text-blue-500 text-xs sm:text-sm font-medium hover:text-blue-600 flex items-center cursor-pointer group-hover:translate-x-1 transition-transform">
               View Details →
             </span>
 
