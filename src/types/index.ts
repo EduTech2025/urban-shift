@@ -121,3 +121,17 @@ export interface SignupCredentials {
   confirmPassword?: string; // optional, used on frontend for validation
   agreeToTerms?: boolean; // optional, used on frontend for validation
 }
+
+
+// GitHub API response types
+export interface GitHubFileItem {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  url: string;
+  html_url: string;
+  git_url: string;
+  download_url: string;
+  type: 'file' | 'dir';
+}

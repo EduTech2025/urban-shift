@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { Property } from "@/types";
+import { Property, GitHubFileItem } from "@/types";
 import { propertyService } from "@/lib/services/propertyService";
 import { toast } from "sonner";
 import {
@@ -140,7 +140,7 @@ const AddPropertyPage: React.FC = () => {
         throw new Error(`Failed to access repository: ${response.statusText}`);
       }
 
-      const contents = await response.json();
+      const contents: GitHubFileItem[] = await response.json();
 
       if (!Array.isArray(contents)) {
         throw new Error(
@@ -149,27 +149,18 @@ const AddPropertyPage: React.FC = () => {
       }
 
       // Filter for image files and convert to raw URLs
-      const imageExtensions = [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".gif",
-        ".webp",
-        ".bmp",
-        ".svg",
-      ];
-      const imageFiles = contents.filter(
-        (file: any) =>
-          file.type === "file" &&
-          imageExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+      const imageFiles = contents.filter((file: GitHubFileItem) => 
+        file.type === 'file' && 
+        imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
       );
 
       if (imageFiles.length === 0) {
         throw new Error("No image files found in the specified folder");
       }
 
-      // Convert download URLs to raw URLs
-      const imageUrls = imageFiles.map((file: any) => {
+     // Convert download URLs to raw URLs
+      const imageUrls = imageFiles.map((file: GitHubFileItem) => {
         // GitHub API returns download_url for raw content
         return file.download_url;
       });
