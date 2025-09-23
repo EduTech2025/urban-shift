@@ -489,45 +489,6 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Description Section */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              About this Property
-            </h3>
-            <p className="text-gray-700 leading-relaxed">
-              {property.description || property.subtitle}
-            </p>
-          </div>
-        </div>
-
-        {/* Amenities Section */}
-        <div className="max-w-4xl mx-auto mt-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Amenities
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {amenities.map((amenity, index) => (
-                <div
-                  key={index}
-                  className={`flex flex-col items-center p-3 rounded-lg text-center ${
-                    amenity.available
-                      ? "bg-green-50 text-green-700"
-                      : "bg-gray-50 text-gray-400"
-                  }`}
-                >
-                  <div className="mb-2">{amenity.icon}</div>
-                  <span className="text-xs font-medium">{amenity.name}</span>
-                  {amenity.available && (
-                    <CheckCircle className="w-3 h-3 mt-1" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Full Screen Gallery */}

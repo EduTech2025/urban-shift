@@ -15,6 +15,7 @@ import {
   Image as LucidImage,
   Check,
   X,
+  Github,
 } from "lucide-react";
 
 const AddPropertyPage: React.FC = () => {
@@ -48,7 +49,6 @@ const AddPropertyPage: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [showImageFolder, setShowImageFolder] = useState("");
   const [extractingImages, setExtractingImages] = useState(false);
-
   const [hasError, setHasError] = useState(false);
 
   // Check if we're in edit mode
@@ -84,127 +84,99 @@ const AddPropertyPage: React.FC = () => {
     }
   };
 
-  // Helper function to convert Google Drive URLs
-  const convertGoogleDriveUrl = (url: string): string => {
+  // Helper function to convert GitHub URLs to raw content URLs
+  const convertGitHubUrl = (url: string): string => {
     if (!url) return url;
 
-    // Handle file URLs
-    const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (fileMatch) {
-      return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`;
+    // Convert GitHub file URLs to raw URLs
+    if (url.includes("github.com") && url.includes("/blob/")) {
+      return url
+        .replace("github.com", "raw.githubusercontent.com")
+        .replace("/blob/", "/");
+    }
+
+    // If it's already a raw URL, return as is
+    if (url.includes("raw.githubusercontent.com")) {
+      return url;
     }
 
     return url;
   };
 
-  // Helper function to extract image URLs from Google Drive folder
-  const extractImagesFromFolder = async (
-    folderUrl: string
+  // Helper function to extract image URLs from GitHub repository folder
+  const extractImagesFromGitHub = async (
+    repoUrl: string
   ): Promise<string[]> => {
     try {
-      // Extract folder ID from URL
-      const folderMatch = folderUrl.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-      if (!folderMatch) {
-        throw new Error("Invalid Google Drive folder URL");
+      // Parse GitHub repository URL
+      let apiUrl = "";
+
+      // Handle different GitHub URL formats
+      if (repoUrl.includes("github.com")) {
+        const match = repoUrl.match(
+          /github\.com\/([^\/]+)\/([^\/]+)(?:\/tree\/([^\/]+)\/(.+))?/
+        );
+        if (!match) {
+          throw new Error("Invalid GitHub repository URL format");
+        }
+
+        const [, owner, repo, branch = "main", path = ""] = match;
+        apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}${
+          branch !== "main" ? `?ref=${branch}` : ""
+        }`;
+      } else {
+        throw new Error("Please enter a valid GitHub repository URL");
       }
 
-      const folderId = folderMatch[1];
+      // Fetch repository contents
+      const response = await fetch(apiUrl);
 
-      // Try to access the public folder view
-      const publicFolderUrl = `https://drive.google.com/drive/folders/${folderId}`;
-
-      try {
-        // Use a proxy service to bypass CORS
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          publicFolderUrl
-        )}`;
-        const response = await fetch(proxyUrl);
-
-        if (!response.ok) {
-          throw new Error("Failed to access folder");
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Repository not found or folder path doesn't exist");
+        } else if (response.status === 403) {
+          throw new Error("Rate limit exceeded or repository is private");
         }
-
-        const data = await response.json();
-        const htmlContent = data.contents;
-
-        // Parse the HTML to extract file IDs
-        const fileIdMatches = htmlContent.match(
-          /data-id="([a-zA-Z0-9_-]{25,})"/g
-        );
-
-        if (!fileIdMatches) {
-          throw new Error("No files found or folder is not public");
-        }
-
-        // Extract file IDs and filter for images
-        const fileIds = fileIdMatches
-          .map((match: string) => {
-            const idMatch = match.match(/data-id="([a-zA-Z0-9_-]+)"/);
-            return idMatch ? idMatch[1] : null;
-          })
-          .filter(Boolean);
-
-        // For each file ID, we need to check if it's an image
-        // We'll convert all found files to direct URLs and let the browser handle invalid ones
-        const imageUrls = fileIds.map(
-          (id: string) => `https://drive.google.com/uc?export=view&id=${id}`
-        );
-
-        // Filter out duplicates
-        const uniqueUrls = [...new Set(imageUrls)] as string[];
-
-        if (uniqueUrls.length === 0) {
-          throw new Error("No image files found in folder");
-        }
-
-        return uniqueUrls;
-      } catch (proxyError) {
-        // Fallback: Try alternative method using the embed view
-        console.error("Proxy method failed, trying embed view...", proxyError);
-
-        const embedUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
-        const embedProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          embedUrl
-        )}`;
-
-        const embedResponse = await fetch(embedProxyUrl);
-        if (!embedResponse.ok) {
-          throw new Error("Folder may not be public or accessible");
-        }
-
-        const embedData = await embedResponse.json();
-        const embedHtml = embedData.contents;
-
-        // Extract file information from embed view
-        const fileMatches = embedHtml.match(/"([a-zA-Z0-9_-]{25,})"/g);
-
-        if (!fileMatches) {
-          throw new Error(
-            "Could not extract files from folder. Make sure the folder is public."
-          );
-        }
-
-        // Define interface for file ID extraction
-        interface FileIdExtractor {
-          (match: string): string;
-        }
-
-        const fileIds: string[] = fileMatches
-          .map(((match: string) => {
-            return match.replace(/"/g, "");
-          }) as FileIdExtractor)
-          .filter((id: string) => id.length >= 25); // Filter valid Drive file IDs
-
-        // Remove duplicates and convert to image URLs
-        const uniqueFileIds = [...new Set(fileIds)];
-        const imageUrls = uniqueFileIds
-          .slice(0, 20)
-          .map((id) => `https://drive.google.com/uc?export=view&id=${id}`);
-
-        return imageUrls;
+        throw new Error(`Failed to access repository: ${response.statusText}`);
       }
+
+      const contents = await response.json();
+
+      if (!Array.isArray(contents)) {
+        throw new Error(
+          "Invalid repository structure or path is not a directory"
+        );
+      }
+
+      // Filter for image files and convert to raw URLs
+      const imageExtensions = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".bmp",
+        ".svg",
+      ];
+      const imageFiles = contents.filter(
+        (file: any) =>
+          file.type === "file" &&
+          imageExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
+      );
+
+      if (imageFiles.length === 0) {
+        throw new Error("No image files found in the specified folder");
+      }
+
+      // Convert download URLs to raw URLs
+      const imageUrls = imageFiles.map((file: any) => {
+        // GitHub API returns download_url for raw content
+        return file.download_url;
+      });
+
+      return imageUrls;
     } catch (error) {
-      console.error("Error extracting images:", error);
+      console.error("Error extracting images from GitHub:", error);
       let errorMessage = "Unknown error";
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -226,9 +198,9 @@ const AddPropertyPage: React.FC = () => {
     } else if (type === "number") {
       setFormData({ ...formData, [name]: Number(value) });
     } else {
-      // Auto-convert Google Drive URLs for main_image
+      // Auto-convert GitHub URLs for main_image
       const convertedValue =
-        name === "main_image" ? convertGoogleDriveUrl(value) : value;
+        name === "main_image" ? convertGitHubUrl(value) : value;
       setFormData({ ...formData, [name]: convertedValue });
     }
   };
@@ -247,28 +219,28 @@ const AddPropertyPage: React.FC = () => {
     e.preventDefault();
     setDragOver(false);
     const droppedText = e.dataTransfer.getData("text/plain");
-    if (droppedText && droppedText.includes("drive.google.com")) {
-      const convertedUrl = convertGoogleDriveUrl(droppedText);
+    if (droppedText && droppedText.includes("github.com")) {
+      const convertedUrl = convertGitHubUrl(droppedText);
       setFormData({ ...formData, main_image: convertedUrl });
-      toast.success("Image URL added and converted!");
+      toast.success("GitHub image URL added and converted!");
     }
   };
 
   const handleShowImageFolderAdd = async () => {
     if (!showImageFolder.trim()) {
-      toast.error("Please enter a folder URL");
+      toast.error("Please enter a GitHub repository URL");
       return;
     }
 
-    if (!showImageFolder.includes("drive.google.com/drive/folders/")) {
-      toast.error("Please enter a valid Google Drive folder link");
+    if (!showImageFolder.includes("github.com")) {
+      toast.error("Please enter a valid GitHub repository URL");
       return;
     }
 
     setExtractingImages(true);
 
     try {
-      const extractedImages = await extractImagesFromFolder(showImageFolder);
+      const extractedImages = await extractImagesFromGitHub(showImageFolder);
       const currentImages = formData.show_image || [];
 
       setFormData({
@@ -277,10 +249,16 @@ const AddPropertyPage: React.FC = () => {
       });
 
       setShowImageFolder("");
-      toast.success(`Added ${extractedImages.length} images from folder!`);
+      toast.success(
+        `Added ${extractedImages.length} images from GitHub repository!`
+      );
     } catch (error) {
-      console.error("Error extracting images from folder:", error);
-      toast.error("Failed to extract images from folder");
+      console.error("Error extracting images from GitHub:", error);
+      toast.error(
+        `Failed to extract images: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     } finally {
       setExtractingImages(false);
     }
@@ -478,7 +456,7 @@ const AddPropertyPage: React.FC = () => {
           {/* Images */}
           <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <LucidImage className="w-5 h-5 text-orange-600" />
+              <Github className="w-5 h-5 text-orange-600" />
               Property Images
             </h2>
 
@@ -502,10 +480,10 @@ const AddPropertyPage: React.FC = () => {
                     <Upload className="w-8 h-8 text-gray-400" />
                     <div className="text-center">
                       <p className="text-sm font-medium text-gray-700">
-                        Drop Google Drive image URL here or paste below
+                        Drop GitHub image URL here or paste below
                       </p>
                       <p className="text-xs text-gray-500">
-                        Supports Google Drive image links
+                        Supports GitHub repository image links
                       </p>
                     </div>
                   </div>
@@ -516,25 +494,29 @@ const AddPropertyPage: React.FC = () => {
                   value={formData.main_image}
                   onChange={handleChange}
                   required
-                  placeholder="https://drive.google.com/file/..."
+                  placeholder="https://github.com/username/repo/blob/main/image.jpg"
                   className="w-full border border-gray-200 rounded-lg px-4 py-3 mt-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Paste a GitHub file URL - it will be automatically converted
+                  to a raw URL
+                </p>
               </div>
 
               {/* Show Images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Images
+                  Additional Images from GitHub Repository
                 </label>
                 <p className="text-xs text-gray-500 mb-3">
-                  Add Google Drive folder containing multiple images
+                  Add GitHub repository URL containing multiple images
                 </p>
                 <div className="flex gap-2">
                   <input
                     type="url"
                     value={showImageFolder}
                     onChange={(e) => setShowImageFolder(e.target.value)}
-                    placeholder="https://drive.google.com/drive/folders/1ABC...XYZ"
+                    placeholder="https://github.com/username/repo/tree/main/images"
                     className="flex-1 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
                   />
                   <button
@@ -550,10 +532,23 @@ const AddPropertyPage: React.FC = () => {
                     {extractingImages ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <Upload className="w-4 h-4" />
+                      <Github className="w-4 h-4" />
                     )}
                     {extractingImages ? "Extracting..." : "Extract Images"}
                   </button>
+                </div>
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs text-blue-700">
+                    <strong>Supported formats:</strong> Repository root,
+                    specific folder path, or branch-specific folder
+                    <br />
+                    <strong>Examples:</strong>
+                    <br />
+                    • https://github.com/user/repo
+                    <br />
+                    • https://github.com/user/repo/tree/main/images
+                    <br />• https://github.com/user/repo/tree/develop/assets
+                  </p>
                 </div>
 
                 {/* Display extracted images */}
@@ -572,10 +567,10 @@ const AddPropertyPage: React.FC = () => {
                             <Image
                               src={imageUrl}
                               alt={`Property image ${index + 1}`}
-                              width={500} // ✅ required in Next.js
-                              height={300} // ✅ required in Next.js
+                              width={500}
+                              height={300}
                               className="w-full h-full object-cover"
-                              onError={() => setHasError(true)} // ✅ handle fallback
+                              onError={() => setHasError(true)}
                             />
                             <LucidImage className="w-6 h-6 text-gray-400 hidden" />
                           </div>
