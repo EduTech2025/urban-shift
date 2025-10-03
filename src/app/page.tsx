@@ -10,9 +10,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <Hero />
-      <PropertyGrid />
-      <Advisory />
       <PropertyFilterSection />
+      <Advisory />
+      <PropertyGrid />
       <Footer />
     </div>
   );
