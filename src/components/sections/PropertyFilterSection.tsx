@@ -37,6 +37,8 @@ const PropertyFilterSection = () => {
     inSector: "",
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -147,6 +149,17 @@ const PropertyFilterSection = () => {
         }
       }
 
+       if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (
+        !property.title.toLowerCase().includes(query) &&
+        !(property.subtitle && property.subtitle.toLowerCase().includes(query)) &&
+        !property.location.toLowerCase().includes(query)
+      ) {
+        return false;
+      }
+    }
+
       // Property type filter
       if (
         selectedFilters.propertyType.length > 0 &&
@@ -203,7 +216,7 @@ const PropertyFilterSection = () => {
 
       return true;
     });
-  }, [allProperties, selectedFilters]);
+  }, [allProperties, selectedFilters,searchQuery]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
@@ -512,10 +525,11 @@ const PropertyFilterSection = () => {
     <div className="bg-[#faf3ee] m-2 sm:m-4 lg:m-7 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl lg:shadow-2xl min-h-screen p-3 sm:p-6 lg:p-10">
       <div className="max-w-10xl mx-auto">
         <HeaderControls
-          onMobileFiltersOpen={() => setShowMobileFilters(true)}
-          filterCount={activeFilterCount}
-        />
-
+            onMobileFiltersOpen={() => setShowMobileFilters(true)}
+            filterCount={activeFilterCount}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
         <div className="flex gap-4 sm:gap-6">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block">

@@ -3,14 +3,20 @@
 import React from "react";
 import { ChevronDown, Filter, Search } from "lucide-react";
 
+
 interface HeaderControlsProps {
   onMobileFiltersOpen: () => void;
   filterCount?: number;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 }
+
 
 export const HeaderControls: React.FC<HeaderControlsProps> = ({
   onMobileFiltersOpen,
   filterCount = 0,
+  searchQuery,
+  onSearchChange,
 }) => {
   return (
     <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 sm:mb-6 gap-4">
@@ -66,10 +72,12 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
       {/* Search Bar */}
       <div className="relative">
         <input
-          type="text"
-          placeholder="Search for..."
-          className="bg-white border border-gray-200 rounded-lg pl-4 pr-12 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        />
+            type="text"
+            placeholder="Search for..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="bg-white border border-gray-200 rounded-lg pl-4 pr-12 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-600 rounded-lg p-2">
           <Search className="w-4 h-4 text-white" />
         </div>
