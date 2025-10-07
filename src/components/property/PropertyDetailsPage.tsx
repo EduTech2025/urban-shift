@@ -118,6 +118,12 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
   window.open(whatsappUrl, "_blank");
 };
 
+  const handleCallsApp = () => {
+  const call = `tel:97189751020`;
+
+  window.open(call, "_blank");
+};
+
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
@@ -411,11 +417,12 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
 
                   {/* Contact Buttons */}
                   <div className="space-y-3">
-                    <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 font-medium shadow-sm">
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call Owner
-                    </Button>
-
+                         <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 font-medium shadow-sm flex items-center justify-center"
+                         onClick={handleCallsApp}
+                         >
+                            <Phone className="w-4 h-4 mr-2" />
+                            Call Owner
+                          </Button>
                     <Button
                       variant="outline"
                       className="w-full border-2 border-green-500 text-green-600 hover:bg-green-50 py-3 font-medium"

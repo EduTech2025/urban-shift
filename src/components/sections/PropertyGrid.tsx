@@ -62,19 +62,6 @@ const PropertyGrid = () => {
     }
   }, [controls, isHovered, featuredProperties]);
 
-  // Auto-scroll animation for mobile
-  useEffect(() => {
-    if (!isMobileHovered && featuredProperties.length > 1) {
-      const autoScrollInterval = setInterval(() => {
-        setCurrentIndex((prevIndex) => {
-          const nextIndex = prevIndex + 1;
-          return nextIndex >= featuredProperties.length ? 0 : nextIndex;
-        });
-      }, 3000); // Auto-scroll every 3 seconds
-
-      return () => clearInterval(autoScrollInterval);
-    }
-  }, [isMobileHovered, featuredProperties.length]);
 
   // Manual navigation functions for desktop
   const scrollLeft = () => {
@@ -187,32 +174,13 @@ const PropertyGrid = () => {
           </motion.div>
 
           {/* Mobile: Enhanced carousel with auto-scroll */}
+
           <div
             className="sm:hidden relative overflow-hidden py-4"
             onTouchStart={() => setIsMobileHovered(true)}
             onTouchEnd={() => setTimeout(() => setIsMobileHovered(false), 5000)}
           >
-            {/* Navigation arrows for mobile - Enhanced */}
-            {featuredProperties.length > 1 && (
-              <>
-                <button
-                  onClick={goToPrev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 border border-gray-200"
-                  aria-label="Previous property"
-                >
-                  <ChevronLeft className="h-5 w-5 text-gray-700" />
-                </button>
-                <button
-                  onClick={goToNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200 border border-gray-200"
-                  aria-label="Next property"
-                >
-                  <ChevronRight className="h-5 w-5 text-gray-700" />
-                </button>
-              </>
-            )}
-
-            {/* Mobile carousel container with improved layout */}
+            {/* Mobile carousel container */}
             <div className="relative w-full h-auto">
               <div
                 className="flex transition-transform duration-500 ease-out"
@@ -224,41 +192,29 @@ const PropertyGrid = () => {
                     className="w-full flex-shrink-0 px-4"
                   >
                     <div className="max-w-sm mx-auto">
-                      <PropertyCard
-                        property={property}
-                      />
+                      <PropertyCard property={property} />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Enhanced dots indicator with progress */}
+            {/* Dots indicator */}
             {featuredProperties.length > 1 && (
               <div className="flex justify-center mt-6 space-x-2">
                 {featuredProperties.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === currentIndex
+                    className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
                         ? "bg-blue-600 w-8"
                         : "bg-gray-300 w-2 hover:bg-gray-400"
-                    }`}
+                      }`}
                     aria-label={`Go to property ${index + 1}`}
                   />
                 ))}
               </div>
             )}
-
-            {/* Auto-scroll indicator
-            {featuredProperties.length > 1 && !isMobileHovered && (
-              <div className="absolute top-2 right-4 z-20">
-                <div className="bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                  Auto
-                </div>
-              </div>
-            )} */}
           </div>
         </div>
 
