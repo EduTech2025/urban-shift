@@ -103,6 +103,22 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
     }
   };
 
+  const handleWhatsApp = () => {
+ 
+  const message = `🏡 *${property.title}*  
+📍 Location: ${property.location}  
+💰 Price: ₹${property.price.toLocaleString()} ${property.price_unit}  
+🖼️ Image: ${property.main_image}  
+🔗 View property: ${window.location.href}`;
+
+  const phoneNumber = "919718751020";
+
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  window.open(whatsappUrl, "_blank");
+};
+
+
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
   };
@@ -403,6 +419,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
                     <Button
                       variant="outline"
                       className="w-full border-2 border-green-500 text-green-600 hover:bg-green-50 py-3 font-medium"
+                        onClick={handleWhatsApp}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       WhatsApp
