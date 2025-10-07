@@ -177,23 +177,6 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-sky-500 text-white text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Your Privacy. Our Commitment.
-        </h2>
-        <p className="text-lg max-w-2xl mx-auto mb-8 text-blue-50">
-          At Unshift Capitals, we value your trust. We ensure your data stays safe and used only to
-          enhance your experience.
-        </p>
-        <a
-          href="/contact"
-          className="inline-block bg-white text-sky-700 px-8 py-3 rounded-full font-semibold hover:bg-sky-100 transition"
-        >
-          Contact Us
-        </a>
-      </section>
-    </main>
+ </main>
   );
 }

@@ -94,23 +94,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-sky-500 text-white text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Partner with Unshift Capitals Today
-        </h2>
-        <p className="text-lg max-w-2xl mx-auto mb-8 text-blue-50">
-          Whether you’re buying, selling, or investing — we’re here to help you take the next big
-          step with confidence.
-        </p>
-        <a
-          href="/contact"
-          className="inline-block bg-white text-sky-700 px-8 py-3 rounded-full font-semibold hover:bg-sky-100 transition"
-        >
-          Get in Touch
-        </a>
-      </section>
     </main>
   );
 }
