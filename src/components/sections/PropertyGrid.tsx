@@ -174,48 +174,19 @@ const PropertyGrid = () => {
           </motion.div>
 
           {/* Mobile: Enhanced carousel with auto-scroll */}
+<div className="sm:hidden relative overflow-x-auto py-4 scrollbar-hide">
+  <div className="flex gap-4 px-4">
+    {featuredProperties.map((property) => (
+      <div
+        key={property.property_id}
+        className="w-72 flex-shrink-0"
+      >
+        <PropertyCard property={property} />
+      </div>
+    ))}
+  </div>
+</div>
 
-          <div
-            className="sm:hidden relative overflow-hidden py-4"
-            onTouchStart={() => setIsMobileHovered(true)}
-            onTouchEnd={() => setTimeout(() => setIsMobileHovered(false), 5000)}
-          >
-            {/* Mobile carousel container */}
-            <div className="relative w-full h-auto">
-              <div
-                className="flex transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-              >
-                {featuredProperties.map((property) => (
-                  <div
-                    key={property.property_id}
-                    className="w-full flex-shrink-0 px-4"
-                  >
-                    <div className="max-w-sm mx-auto">
-                      <PropertyCard property={property} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Dots indicator */}
-            {featuredProperties.length > 1 && (
-              <div className="flex justify-center mt-6 space-x-2">
-                {featuredProperties.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                        ? "bg-blue-600 w-8"
-                        : "bg-gray-300 w-2 hover:bg-gray-400"
-                      }`}
-                    aria-label={`Go to property ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* View All Button */}
