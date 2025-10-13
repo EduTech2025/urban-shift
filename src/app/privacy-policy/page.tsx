@@ -133,10 +133,10 @@ export default function PrivacyPolicyPage() {
               You have the right to access, update, or request deletion of your personal
               information. To exercise these rights, please contact us at{" "}
               <a
-                href="mailto:privacy@unshiftcapitals.com"
+                href="mailto:urbanshiftcapital@gmail.com"
                 className="text-sky-600 font-medium hover:underline"
               >
-                privacy@unshiftcapitals.com
+                urbanshiftcapital@gmail.com
               </a>
               .
             </p>
@@ -166,13 +166,13 @@ export default function PrivacyPolicyPage() {
             <p className="mt-2 text-gray-700">
               <strong>Email:</strong>{" "}
               <a
-                href="mailto:support@unshiftcapitals.com"
+                href="mailto:urbanshiftcapital@gmail.com"
                 className="text-sky-600 font-medium hover:underline"
               >
-                support@unshiftcapitals.com
+                urbanshiftcapital@gmail.com
               </a>
               <br />
-              <strong>Address:</strong> Unshift Capitals Pvt. Ltd., Bengaluru, India
+              <strong>Address:</strong> 2516, DLF Phase 4 Sec 28 , Near Cross Point Mall, Gurugram,
             </p>
           </div>
         </div>

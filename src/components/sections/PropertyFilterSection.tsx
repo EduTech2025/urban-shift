@@ -383,7 +383,7 @@ const PropertyFilterSection = () => {
           Maximum Area Size{" "}
           <span className="text-gray-500 text-sm">(sq. ft.)</span>
         </h3>
-        <div className="relative mb-4">
+        <div className="relative mt-4 mb-4">
           <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2">
             {selectedFilters.areaSize} sq.ft.
           </span>
@@ -435,7 +435,7 @@ const PropertyFilterSection = () => {
             </label>
           ))}
           <label
-            className={`flex items-center justify-center cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors col-span-3 ${
+            className={`mt-2 flex items-center justify-center cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium transition-colors col-span-3 ${
               selectedFilters.parking === ""
                 ? "border-indigo-600 bg-indigo-600 text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:bg-indigo-50"
@@ -455,7 +455,7 @@ const PropertyFilterSection = () => {
       </div>
 
       {/* Furnishing */}
-      <div className="mb-6">
+      <div className="mb-6 mt-5">
         <h3 className="font-semibold text-gray-900 mb-4">Furnishing</h3>
         <CheckboxFilter
           options={furnishingOptions}
@@ -572,7 +572,7 @@ const PropertyFilterSection = () => {
                     ))
                   ) : (
                     <div className="col-span-full text-center py-12">
-                      <div className="text-gray-400 text-6xl mb-4">🏠</div>
+                      <div className="text-gray-400 text-6xl mb-6">🏠</div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         No properties found
                       </h3>

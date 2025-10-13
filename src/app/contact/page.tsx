@@ -83,7 +83,7 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+1 (555) 123-4567</p>
+                  <p className="text-gray-600">+91 8448212275</p>
                 </div>
               </div>
 
@@ -93,7 +93,7 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Email</h3>
-                  <p className="text-gray-600">info@urbanshift.com</p>
+                  <p className="text-gray-600">urbanshiftcapital@gmail.com</p>
                 </div>
               </div>
 
@@ -104,8 +104,8 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-medium text-gray-900">Address</h3>
                   <p className="text-gray-600">
-                    123 Urban Street<br />
-                    Metropolitan City, MC 12345
+                    2516, DLF Phase 4 Sec 28<br />
+                    Near Cross Point Mall, Gurugram, Haryana
                   </p>
                 </div>
               </div>

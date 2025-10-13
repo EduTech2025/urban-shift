@@ -5,7 +5,7 @@ import {
   ArrowLeft,
   MapPin,
   Home,
-  Heart,
+  Bookmark,
   Share2,
   Phone,
   MessageCircle,
@@ -111,7 +111,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
 🖼️ Image: ${property.main_image}  
 🔗 View property: ${window.location.href}`;
 
-  const phoneNumber = "919718751020";
+  const phoneNumber = "8448212275";
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
@@ -119,7 +119,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
 };
 
   const handleCallsApp = () => {
-  const call = `tel:97189751020`;
+  const call = `tel:8448212275`;
 
   window.open(call, "_blank");
 };
@@ -135,6 +135,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
     );
   };
 
+  console.log("Property Details:",property.description || property.subtitle);
   const formatPrice = () => {
     return `₹${property.price.toLocaleString()} ${property.price_unit}`;
   };
@@ -201,7 +202,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
                 onClick={(e) => handleSaveProperty(property.property_id, e)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <Heart
+                <Bookmark
                   className={`w-5 h-5 ${
                     isFavorite ? "text-red-500 fill-current" : "text-gray-400"
                   }`}
@@ -323,12 +324,20 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({
 
               {/* Description */}
               <div className="text-gray-700 text-sm leading-relaxed">
-                {property.description || property.subtitle}
+                {(property.description || property.subtitle)
+                  ?.split('\n')
+                  .map((line, i) => (
+                    <React.Fragment key={i}>
+                      {line}
+                      <br />
+                    </React.Fragment>
+                  ))}
               </div>
+
             </div>
 
             {/* Amenities */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="hidden bg-white rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Amenities
               </h3>

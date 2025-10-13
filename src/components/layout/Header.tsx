@@ -8,7 +8,7 @@ import {
   Menu,
   X,
   LogOut,
-  Heart,
+  Bookmark,
   Home, 
 } from "lucide-react";
 import Navigation from "./Navigation";
@@ -153,7 +153,7 @@ const HeaderActions = ({ isMobile = false }: { isMobile?: boolean }) => {
       href: "/contact",
     },
     {
-      icon: <Heart className="h-4 w-4" />,
+      icon: <Bookmark className="h-4 w-4" />,
       label: "Favorites",
       href: "/favorites",
       requiresAuth: true,

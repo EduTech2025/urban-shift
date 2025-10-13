@@ -7,7 +7,7 @@ import { Property } from "@/types";
 import { favoriteService } from "@/lib/services/favoriteService";
 import { propertyService } from "@/lib/services/propertyService";
 import { toast } from "sonner";
-import { MapPin, Car, Square, Heart, Edit, Trash2, Star } from "lucide-react";
+import { MapPin, Car, Square, Bookmark, Edit, Trash2, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 
@@ -114,7 +114,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
               className="absolute top-3 right-3 z-30 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all hover:scale-110"
               onClick={(e) => handleSaveProperty(property.property_id, e)}
             >
-              <Heart
+              <Bookmark
                 className={`w-5 h-5 transition-colors duration-200 ${
                   isFavorite ? "text-red-500" : "text-gray-400"
                 }`}
@@ -174,11 +174,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onDelete }) => {
           <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base line-clamp-1">
             {property.title}
           </h3>
-          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
+          <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">
             {property.subtitle}
           </p>
 
-          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
+          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1 text-gray-400" />
               <span className="line-clamp-1">{property.location}</span>

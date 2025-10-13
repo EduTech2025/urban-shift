@@ -103,7 +103,7 @@ const Advisory = () => {
             {/* Images Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:order-2 lg:mt-8">
               {/* Large Image - Full width on mobile, spans 2 cols on larger */}
-              <div
+              {/* <div
                 className="
                 sm:col-span-2 
                 h-32 sm:h-40 lg:h-48 
@@ -120,9 +120,27 @@ const Advisory = () => {
                     backgroundPosition: "center",
                   }}
                 />
-              </div>
+              </div> */}
 
               {/* Bottom Images - Stacked on mobile, side by side on larger */}
+              <div className="flex flex-col gap-5 sm:gap-6">
+                <div
+                className="
+                h-28 sm:h-32 lg:h-40 
+                rounded-lg sm:rounded-xl lg:rounded-2xl 
+                overflow-hidden
+                shadow-md hover:shadow-lg transition-shadow
+              "
+              >
+                <div
+                  className="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600"
+                  style={{
+                    backgroundImage: `url('/assets/advisory4.jpg')`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+              </div>
               <div
                 className="
                 h-28 sm:h-32 lg:h-40 
@@ -141,6 +159,7 @@ const Advisory = () => {
                 />
               </div>
 
+              </div>
               <div
                 className="
                 h-28 sm:h-32 lg:h-64 xl:h-96 
