@@ -7,7 +7,7 @@ import PropertyCard from "@/components/property/PropertyCard";
 import { Property } from "@/types";
 import {
   ArrowLeft,
-  Heart,
+  Bookmark,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -185,7 +185,7 @@ const FavoritesPage = () => {
 
           <div className="bg-white rounded-xl p-8 shadow-sm text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-8 w-8 text-red-500" />
+              <Bookmark className="h-8 w-8 text-red-500" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Something went wrong
@@ -222,7 +222,7 @@ const FavoritesPage = () => {
 
           <div className="bg-white rounded-xl p-12 shadow-sm text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="h-10 w-10 text-gray-400" />
+              <Bookmark className="h-10 w-10 text-gray-400" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">
               No saved properties yet
